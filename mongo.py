@@ -38,6 +38,9 @@ def get_session(uid):
 
 
 def init_session(uid):
+    client.sessions_data.sessions_active.delete_one({
+        "uid": uid
+    })
     client.sessions_data.sessions_active.insert_one({
         "uid": uid,
         "users": {},

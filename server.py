@@ -23,13 +23,16 @@ def check():
     mongosession = get_session(session["uid"])
     print(mongosession, mongosession is None, type(mongosession))
     if mongosession is None or len(mongosession["order"]) == 0:
-        return redirect("/logout")
+        return redirect("/login")
+    return False
 
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
-    check()
+    res = check()
+    if res:
+        return res
     pprint(mongosession)
     if request.method == 'POST':
         posting_numbers = request.form.getlist('posting_labels')
@@ -113,7 +116,9 @@ def dashboard():
 
 @app.route('/posting_labels', methods=['GET', 'POST'])
 def posting_labels():
-    check()
+    res = check()
+    if res:
+        return res
     q, u = request.args.get("q", "none"), request.args.get("u", "none")
     if q == "none" or u == "none" or not u.isdigit() or int(u) > len(mongosession["order"]):
         return redirect("/dashboard")
@@ -126,7 +131,9 @@ def posting_labels():
 
 @app.route('/delete_file', methods=['GET', 'POST'])
 def mark_delete():
-    check()
+    res = check()
+    if res:
+        return res
     q, u = request.args.get("q", "none"), request.args.get("u", "none")
     if q == "none" or u == "none" or not u.isdigit() or int(u) > len(mongosession["order"]):
         return redirect("/dashboard")
@@ -141,7 +148,9 @@ def mark_delete():
 
 @app.route('/update', methods=['GET', 'POST'])
 def update():
-    check()
+    res = check()
+    if res:
+        return res
     q, u = request.args.get("q", "none"), request.args.get("u", "none")
     if q not in ["items", "postings"]:
         return redirect("/dashboard")
@@ -158,7 +167,9 @@ def update():
 
 @app.route('/get_act', methods=['GET', 'POST'])
 def get_act():
-    check()
+    res = check()
+    if res:
+        return res
     u = request.args.get("u", "none")
     if not u.isdigit():
         u = mongosession["cur_pos"]
