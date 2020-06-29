@@ -198,7 +198,8 @@ def confirm_join():
                     session["uid"] = secrets.token_urlsafe()
                 mongosession = get_session(session["uid"])
                 if mongosession is None or len(mongosession["order"]) == 0:
-                    mongosession = init_session(session["uid"])
+                    init_session(session["uid"])
+                    mongosession = get_session(session["uid"])
                 mongosession["users"][username] = data
                 mongosession["order"] = mongosession.get("order", []) + [username]
                 modify_session(session["uid"], mongosession)
@@ -225,7 +226,8 @@ def login():
                     session["uid"] = secrets.token_urlsafe()
                 mongosession = get_session(session["uid"])
                 if mongosession is None or len(mongosession["order"]) == 0:
-                    mongosession = init_session(session["uid"])
+                    init_session(session["uid"])
+                    mongosession = get_session(session["uid"])
                 mongosession["users"][username] = data
                 mongosession["order"] = mongosession.get("order", []) + [username]
                 modify_session(session["uid"], mongosession)
