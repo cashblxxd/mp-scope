@@ -22,7 +22,7 @@ def check():
     print(session["uid"])
     mongosession = get_session(session["uid"])
     if mongosession is None or len(mongosession["order"]) == 0:
-        return redirect("/login")
+        return redirect("/logout")
 
 
 @app.route('/', methods=['GET', 'POST'])
