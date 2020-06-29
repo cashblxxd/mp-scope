@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Вход</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <script
+        src="https://code.jquery.com/jquery-3.5.1.min.js"
+        integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+        crossorigin="anonymous"></script>
+        <script
+        src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"
+        integrity="sha256-eGE6blurk5sHj+rmkfsGYeKyZx3M4bG+ZlFyA7Kns7E="
+        crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/all.css') }}">
+</head>
+<body>
+<div class="accounts">
+    <div class="accounts__header">
+        
+
+        <form action="#"method="">
+            <button class="accounts__header-search__button">
+              
+                    <i class="fas fa-search accounts__header-search__icon"></i>
+      
+            <input type="text" class="accounts__header-search__input" placeholder="Поиск по названию">
+           
+             
+            </button>
+        </form>
+        <h1 class="accounts__header-heading">Аккаунт 1</h1>
+
+        <div class="accounts__header-links-box">
+            <a href="#" class="accounts__header-links"><i class="far fa-question-circle accounts__header-links-icon"></i></a>
+            <a href="#" class="accounts__header-links"><i class="far fa-envelope accounts__header-links-icon"></i></a>
+            <a href="#" class="accounts__header-links"><i class="far fa-user-circle accounts__header-links-icon"></i></a>
+        </div>
+    </div>
+
+    <div class="accounts__menu" id="account-1">
+        <ul class="accounts__menu-list">
+        <h1 class="accounts__menu-heading" id="account-1-close"><i class="fas fa-user-minus"></i> Аккаунт 1</h1>
+            <a href="#" class="accounts__menu-item "id="current-page">
+                <i class="fas fa-calendar-alt">&nbsp;&nbsp;</i> Ozon.Seller
+                <div class="accounts__menu-item-hover " id="current-page-hover">&nbsp;</div>
+            </a>
+            <a href="#" class="accounts__menu-item">
+                <i class="far fa-chart-bar"></i>&nbsp;&nbsp;</i> Динамика
+                <div class="accounts__menu-item-hover">&nbsp;</div>
+            </a>
+            <a href="#" class="accounts__menu-item">
+                <i class="fas fa-chart-line">&nbsp;&nbsp;</i> Продажи
+                <div class="accounts__menu-item-hover">&nbsp;</div>
+            </a>
+            <a href="#" class="accounts__menu-item">
+                <i class="fas fa-chart-pie"></i>&nbsp;&nbsp;</i> Анализ
+                <div class="accounts__menu-item-hover">&nbsp;</div>
+            </a>
+            <a href="#" class="accounts__menu-item">
+                <i class="fas fa-cart-plus"></i>&nbsp;&nbsp;</i> Закупка
+                <div class="accounts__menu-item-hover">&nbsp;</div>
+            </a>
+            <a href="#" class="accounts__menu-item">
+                <i class="fas fa-chart-area"></i>&nbsp;&nbsp;</i> Потери
+                <div class="accounts__menu-item-hover">&nbsp;</div>
+            </a>
+            <a href="#" class="accounts__menu-item">
+                <i class="fas fa-map-marked-alt"></i>&nbsp;&nbsp;</i> Карта
+                <div class="accounts__menu-item-hover">&nbsp;</div>
+            </a>
+            <a href="#" class="accounts__menu-item">
+                <i class="fas fa-people-carry"></i>&nbsp;&nbsp;</i> Движение
+                <div class="accounts__menu-item-hover">&nbsp;</div>
+            </a>
+            <a href="#" class="accounts__menu-item">
+                <i class="fas fa-id-card"></i>&nbsp;&nbsp;</i> Конкуренты
+                <div class="accounts__menu-item-hover">&nbsp;</div>
+            </a>
+            <a href="#" class="accounts__menu-item">
+                <i class="fas fa-coins"></i>&nbsp;&nbsp;</i> Средства
+                <div class="accounts__menu-item-hover">&nbsp;</div>
+            </a>
+            <a href="#" class="accounts__menu-item">
+                <i class="fas fa-cog"></i>&nbsp;&nbsp;</i> Настройки
+                <div class="accounts__menu-item-hover">&nbsp;</div>
+            </a>
+        </ul>
+        
+    </div>
+
+    
+    <div class="accounts__menu-2">
+        <ul class="accounts__menu-list">
+          
+                <h1 class="accounts__menu-heading-2" id="account-1-click"><i class="fas fa-user-plus"></i> Аккаунт 1</h1>
+
+
+                <h1 class="accounts__menu-heading-2" id="account-2-click"><i class="fas fa-user-plus"></i> Аккаунт 2</h1>
+           
+
+                
+                <a href="" class="accounts__menu-heading-2-link"><h1 class="accounts__menu-heading-2" id="account-2-click"><i class="fas fa-user-plus"></i>Добавить аккаунт</h1></a>
+            </ul>
+    </div>  
+
+    <div class="accounts__main"></div> 
+        <div class="accounts__main-heading-box">
+        <p class="accounts__main-heading" id="accounts__main-hover-one">
+            Товары
+            
+        </p>
+        <p class="accounts__main-heading" id="accounts__main-hover-2">
+            Заказы
+          
+        </p>
+    </div>
+      <div class="accounts__main-line">&nbsp;</div>
+      <div class="accounts__main-line-active">&nbsp;</div>
+
+    <div class="accounts__main__tab">
+    
+    </div> 
+            <p class="accounts__main__tab-button">&larr;</p>
+            <div class="accounts__main__tab-box">     
+                <a href="" class="accounts__main__tab-link">Вкладка 1</a>
+                <a href="" class="accounts__main__tab-link">Вкладка 2</a>
+                <a href="" class="accounts__main__tab-link">Вкладка 3</a>
+    
+            </div>
+        
+            <p class="accounts__main__tab-button accounts__main__tab-button-2">&rarr;</p>
+
+            <div class="accounts__main__tab-active">&nbsp;</div>
+            
+            <p id="settings-open" class="accounts__main__tab-settings"><i class="fas fa-cog"></i></p>
+
+
+<div class="accounts__main-table">
+<div class="accounts__main-table-scroll">
+
+    <div class="accounts__main-table-item-label">
+
+        <div class="accounts__main-table-label">
+            Артикул
+        </div>
+        <div class="accounts__main-table-label">
+            Фото
+        </div>
+        <div class="accounts__main-table-label">
+            Наименование
+        </div>
+        <div class="accounts__main-table-label">
+            Статус
+        </div>
+        <div class="accounts__main-table-label">
+            Видимость
+        </div>
+        <div class="accounts__main-table-label">
+            На моём складе
+        </div>
+        <div class="accounts__main-table-label">
+            Цена на Ozon
+        </div>
+        <div class="accounts__main-table-label">
+            Цена з зачислению
+        </div>
+    </div>
+
+
+    <div class="accounts__main-table-item">
+
+        <div class="accounts__main-table-text">
+            A-1010
+        </div>
+        <img src="img/photo_2020-05-27_23-29-46.jpg" alt="" class="accounts__main-table-img">
+        <div class="accounts__main-table-text">
+            очень дорогая вешь
+        </div>
+        <div class="accounts__main-table-text">
+            Продаеться
+        </div>
+        <div class="accounts__main-table-text">
+            Показываеться
+        </div>
+        <div class="accounts__main-table-text">
+            10
+        </div>
+        <div class="accounts__main-table-text">
+            490
+        </div>
+        <div class="accounts__main-table-text">
+            390
+        </div>
+    </div>
+
+
+    <div class="accounts__main-table-item">
+
+        <div class="accounts__main-table-text">
+            A-1010
+        </div>
+        <img src="img/photo_2020-05-27_23-29-46.jpg" alt="" class="accounts__main-table-img">
+        <div class="accounts__main-table-text">
+            очень дорогая вешь
+        </div>
+        <div class="accounts__main-table-text">
+            Продаеться
+        </div>
+        <div class="accounts__main-table-text">
+            Показываеться
+        </div>
+        <div class="accounts__main-table-text">
+            10
+        </div>
+        <div class="accounts__main-table-text">
+            490
+        </div>
+        <div class="accounts__main-table-text">
+            390
+        </div>
+    </div>
+
+    <div class="accounts__main-table-item">
+
+        <div class="accounts__main-table-text">
+            A-1010
+        </div>
+        <img src="img/photo_2020-05-27_23-29-46.jpg" alt="" class="accounts__main-table-img">
+        <div class="accounts__main-table-text">
+            очень дорогая вешь
+        </div>
+        <div class="accounts__main-table-text">
+            Продаеться
+        </div>
+        <div class="accounts__main-table-text">
+            Показываеться
+        </div>
+        <div class="accounts__main-table-text">
+            10
+        </div>
+        <div class="accounts__main-table-text">
+            490
+        </div>
+        <div class="accounts__main-table-text">
+            390
+        </div>
+    </div>
+    <div class="accounts__main-table-item">
+
+        <div class="accounts__main-table-text">
+            A-1010
+        </div>
+        <img src="img/photo_2020-05-27_23-29-46.jpg" alt="" class="accounts__main-table-img">
+        <div class="accounts__main-table-text">
+            очень дорогая вешь
+        </div>
+        <div class="accounts__main-table-text">
+            Продаеться
+        </div>
+        <div class="accounts__main-table-text">
+            Показываеться
+        </div>
+        <div class="accounts__main-table-text">
+            10
+        </div>
+        <div class="accounts__main-table-text">
+            490
+        </div>
+        <div class="accounts__main-table-text">
+            390
+        </div>
+    </div>
+
+
+</div>
+</div>
+
+<div class="accounts__settings"></div>
+ <h1 id="settings-close" class="accounts__settings-heading"><i class="fas fa-cog"></i> Настройки</h1>
+     <ul  class="accounts__settings-list">
+        <input type="checkbox" id="checkbox-1" checked class="authorization__checked " name="" id=""><label class="authorization__checked-label accounts__settings-checked" for="checkbox-1"> <p class="authorization__text accounts__settings-label">Дата</p></label>
+        <input type="checkbox" id="checkbox-2" checked class="authorization__checked " name="" id=""><label class="authorization__checked-label accounts__settings-checked" for="checkbox-2"> <p class="authorization__text accounts__settings-label">Номер Заказа</p></label>
+        <input type="checkbox" id="checkbox-3" checked class="authorization__checked " name="" id=""><label class="authorization__checked-label accounts__settings-checked" for="checkbox-3"> <p class="authorization__text accounts__settings-label">Номер Отправления</p></label>
+        <input type="checkbox" id="checkbox-4" checked class="authorization__checked " name="" id=""><label class="authorization__checked-label accounts__settings-checked" for="checkbox-4"> <p class="authorization__text accounts__settings-label">Детали Отправления</p></label>
+        <input type="checkbox" id="checkbox-5" checked class="authorization__checked " name="" id=""><label class="authorization__checked-label accounts__settings-checked" for="checkbox-5"> <p class="authorization__text accounts__settings-label">Стоимость</p></label>
+        <input type="checkbox" id="checkbox-6" checked class="authorization__checked " name="" id=""><label class="authorization__checked-label accounts__settings-checked" for="checkbox-6"> <p class="authorization__text accounts__settings-label">Статус</p></label>
+        <input type="checkbox" id="checkbox-7" checked class="authorization__checked " name="" id=""><label class="authorization__checked-label accounts__settings-checked" for="checkbox-7"> <p class="authorization__text accounts__settings-label">Маркировка</p></label>
+    </ul>
+
+
+
+<div class="accounts__storage">
+    <p class="accounts__storage__heading">На моём складе</p>
+</div>
+
+<script>
+
+$(function () {
+    
+ 
+        $("#account-1-click").click(function(){
+       
+       $("#account-1").css({
+           "visibility":"visible",
+         }).animate({
+           "height":"467px",
+           "opacity": "1"
+       },600,'easeInOutQuint')
+       $("#current-page-hover").addClass("accounts__menu-item-hover-active")
+       $("#current-page").addClass("accounts__menu-item-active")
+   })
+
+
+   $("#account-1-close").click(function(){
+      
+       $("#account-1").css({
+          "visibility":"hidden",
+        }).animate({"opacity": "0"},600);
+        $(".accounts__menu-item-hover .accounts__menu-item-hover-hover").css({
+          "visibility":"hidden",
+        }).animate({"opacity": "0"},600);
+        $("#current-page-hover").removeClass("accounts__menu-item-hover-active")
+       $("#current-page").removeClass("accounts__menu-item-active")
+    })
+      
+
+  
+});
+  
+
+
+
+
+</script>
+
+</body>
+</html>

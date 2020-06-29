@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Вход</title>
+    <link rel="Stylesheet" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"/>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.3.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <script
+        src="https://code.jquery.com/jquery-3.5.1.min.js"
+        integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+        crossorigin="anonymous"></script>
+        <script
+        src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"
+        integrity="sha256-eGE6blurk5sHj+rmkfsGYeKyZx3M4bG+ZlFyA7Kns7E="
+        crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/all.css') }}">
+</head>
+{% for i in range(1, accounts|length + 1) %}
+<style>
+
+    .accounts__menu-current-{{ i }}{
+        height: 467px ;
+        opacity: 1 ;
+        visibility: visible ;
+    }
+
+</style>
+
+{% endfor %}
+<body>
+    
+<div class="accounts">
+    <div class="accounts__header">
+        
+
+        <form action="#" method="">
+            <button class="accounts__header-search__button">
+              
+                    <i class="fas fa-search accounts__header-search__icon"></i>
+      
+            <input type="text" class="accounts__header-search__input" placeholder="Поиск по названию">
+           
+             
+            </button>
+        </form>
+        <h1 class="accounts__header-heading">{{ username }}</h1>
+
+        <div class="accounts__header-links-box">
+            <a href="#" class="accounts__header-links"><i class="far fa-question-circle accounts__header-links-icon"></i></a>
+            <a href="#" class="accounts__header-links"><i class="far fa-envelope accounts__header-links-icon"></i></a>
+            <a href="#" class="accounts__header-links"><i class="far fa-user-circle accounts__header-links-icon"></i></a>
+        </div>
+    </div>
+    {% for i in range(1, accounts|length + 1) %}
+
+        <div class="accounts__menu
+        {% if i == cur_pos %}
+            accounts__menu-current-{{ i }}
+        {% endif %}
+        " id="account-{{ i }}">
+            <ul class="accounts__menu-list">
+            <h1 class="accounts__menu-heading" id="account-{{ i }}-close"><i class="fas fa-user-minus"></i>{{ accounts[i - 1] }}</h1>
+                {% if i == cur_pos and active == "dashboard" %}
+                    <a href="/dashboard?u={{ i }}&page=dashboard" class="accounts__menu-item accounts__menu-item-active">
+                        <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp;</i> MP-Scop
+                        <div class="accounts__menu-item-hover accounts__menu-item-hover-active">&nbsp;</div>
+                    </a>
+                {% else %}
+                    <a href="/dashboard?u={{ i }}&page=dashboard" class="accounts__menu-item">
+                        <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp;</i> MP-Scop
+                        <div class="accounts__menu-item-hover">&nbsp;</div>
+                    </a>
+                {% endif %}
+                {% if i == cur_pos and active == "dynamics" %}
+                    <a href="/dashboard?u={{ i }}&page=dynamics" class="accounts__menu-item accounts__menu-item-active">
+                        <i class="fas fa-chart-bar"></i>&nbsp;&nbsp;</i> Динамика
+                        <div class="accounts__menu-item-hover accounts__menu-item-hover-active">&nbsp;</div>
+                    </a>
+                {% else %}
+                    <a href="/dashboard?u={{ i }}&page=dynamics" class="accounts__menu-item">
+                        <i class="fas fa-chart-bar"></i>&nbsp;&nbsp;</i> Динамика
+                        <div class="accounts__menu-item-hover">&nbsp;</div>
+                    </a>
+                {% endif %}
+                {% if i == cur_pos and active == "sales" %}
+                    <a href="/dashboard?u={{ i }}&page=sales" class="accounts__menu-item accounts__menu-item-active">
+                        <i class="fas fa-chart-line"></i>&nbsp;&nbsp;</i> Продажи
+                        <div class="accounts__menu-item-hover accounts__menu-item-hover-active">&nbsp;</div>
+                    </a>
+                {% else %}
+                    <a href="/dashboard?u={{ i }}&page=sales" class="accounts__menu-item">
+                        <i class="fas fa-chart-line"></i>&nbsp;&nbsp;</i> Продажи
+                        <div class="accounts__menu-item-hover">&nbsp;</div>
+                    </a>
+                {% endif %}
+                {% if i == cur_pos and active == "analysis" %}
+                    <a href="/dashboard?u={{ i }}&page=analysis" class="accounts__menu-item accounts__menu-item-active">
+                        <i class="fas fa-chart-pie"></i>&nbsp;&nbsp;</i> Анализ
+                        <div class="accounts__menu-item-hover accounts__menu-item-hover-active">&nbsp;</div>
+                    </a>
+                {% else %}
+                    <a href="/dashboard?u={{ i }}&page=analysis" class="accounts__menu-item">
+                        <i class="fas fa-chart-pie"></i>&nbsp;&nbsp;</i> Анализ
+                        <div class="accounts__menu-item-hover">&nbsp;</div>
+                    </a>
+                {% endif %}
+                {% if i == cur_pos and active == "mp_purchases" %}
+                    <a href="/dashboard?u={{ i }}&page=mp_purchases" class="accounts__menu-item accounts__menu-item-active">
+                        <i class="fas fa-cart-plus"></i>&nbsp;&nbsp;</i> Закупка
+                        <div class="accounts__menu-item-hover accounts__menu-item-hover-active">&nbsp;</div>
+                    </a>
+                {% else %}
+                    <a href="/dashboard?u={{ i }}&page=mp_purchases" class="accounts__menu-item">
+                        <i class="fas fa-cart-plus"></i>&nbsp;&nbsp;</i> Закупка
+                        <div class="accounts__menu-item-hover">&nbsp;</div>
+                    </a>
+                {% endif %}
+                {% if i == cur_pos and active == "losses" %}
+                    <a href="/dashboard?u={{ i }}&page=losses" class="accounts__menu-item accounts__menu-item-active">
+                        <i class="fas fa-chart-area"></i>&nbsp;&nbsp;</i> Потери
+                        <div class="accounts__menu-item-hover accounts__menu-item-hover-active">&nbsp;</div>
+                    </a>
+                {% else %}
+                    <a href="/dashboard?u={{ i }}&page=losses" class="accounts__menu-item">
+                        <i class="fas fa-chart-area"></i>&nbsp;&nbsp;</i> Потери
+                        <div class="accounts__menu-item-hover">&nbsp;</div>
+                    </a>
+                {% endif %}
+                {% if i == cur_pos and active == "map" %}
+                    <a href="/dashboard?u={{ i }}&page=map" class="accounts__menu-item accounts__menu-item-active">
+                        <i class="fas fa-map-marked-alt"></i>&nbsp;&nbsp;</i> Карта
+                        <div class="accounts__menu-item-hover accounts__menu-item-hover-active">&nbsp;</div>
+                    </a>
+                {% else %}
+                    <a href="/dashboard?u={{ i }}&page=map" class="accounts__menu-item">
+                        <i class="fas fa-map-marked-alt"></i>&nbsp;&nbsp;</i> Карта
+                        <div class="accounts__menu-item-hover">&nbsp;</div>
+                    </a>
+                {% endif %}
+                {% if i == cur_pos and active == "traffic" %}
+                    <a href="/dashboard?u={{ i }}&page=traffic" class="accounts__menu-item accounts__menu-item-active">
+                        <i class="fas fa-people-carry"></i>&nbsp;&nbsp;</i> Движение
+                        <div class="accounts__menu-item-hover accounts__menu-item-hover-active">&nbsp;</div>
+                    </a>
+                {% else %}
+                    <a href="/dashboard?u={{ i }}&page=traffic" class="accounts__menu-item">
+                        <i class="fas fa-people-carry"></i>&nbsp;&nbsp;</i> Движение
+                        <div class="accounts__menu-item-hover">&nbsp;</div>
+                    </a>
+                {% endif %}
+                {% if i == cur_pos and active == "competitiors" %}
+                    <a href="/dashboard?u={{ i }}&page=competitiors" class="accounts__menu-item accounts__menu-item-active">
+                        <i class="fas fa-id-card"></i>&nbsp;&nbsp;</i> Конкуренты
+                        <div class="accounts__menu-item-hover accounts__menu-item-hover-active">&nbsp;</div>
+                    </a>
+                {% else %}
+                    <a href="/dashboard?u={{ i }}&page=competitiors" class="accounts__menu-item">
+                        <i class="fas fa-id-card"></i>&nbsp;&nbsp;</i> Конкуренты
+                        <div class="accounts__menu-item-hover">&nbsp;</div>
+                    </a>
+                {% endif %}
+                {% if i == cur_pos and active == "facilities" %}
+                    <a href="/dashboard?u={{ i }}&page=facilities" class="accounts__menu-item accounts__menu-item-active">
+                        <i class="fas fa-coins"></i>&nbsp;&nbsp;</i> Средства
+                        <div class="accounts__menu-item-hover accounts__menu-item-hover-active">&nbsp;</div>
+                    </a>
+                {% else %}
+                    <a href="/dashboard?u={{ i }}&page=facilities" class="accounts__menu-item">
+                        <i class="fas fa-coins"></i>&nbsp;&nbsp;</i> Средства
+                        <div class="accounts__menu-item-hover">&nbsp;</div>
+                    </a>
+                {% endif %}
+                {% if i == cur_pos and active == "settings" %}
+                    <a href="/dashboard?u={{ i }}&page=settings" class="accounts__menu-item accounts__menu-item-active">
+                        <i class="fas fa-cog"></i>&nbsp;&nbsp;</i> Настройки
+                        <div class="accounts__menu-item-hover accounts__menu-item-hover-active">&nbsp;</div>
+                    </a>
+                {% else %}
+                    <a href="/dashboard?u={{ i }}&page=settings" class="accounts__menu-item">
+                        <i class="fas fa-cog"></i>&nbsp;&nbsp;</i> Настройки
+                        <div class="accounts__menu-item-hover">&nbsp;</div>
+                    </a>
+                {% endif %}
+            </ul>
+        </div>
+        
+    {% endfor %}
+
+    
+    <div class="accounts__menu-2">
+        <ul class="accounts__menu-list">
+            {% for i in range(1, accounts|length + 1) %}
+                <h1 class="accounts__menu-heading-2" id="account-{{ i }}-click"><i class="fas fa-user-plus"></i>{{ accounts[i - 1] }}</h1>
+            {% endfor %}
+               
+            <a href="/login" class="accounts__menu-heading-2-link"><h1 class="accounts__menu-heading-2" id="account-2-click"><i class="fas fa-user-plus"></i>Добавить аккаунт</h1></a>
+            </ul>        
+             
+    </div>  
+ 
+{% if active == "dashboard" %}
+    <div class="accounts__main"></div>
+    <div class="accounts__main-heading-box">
+        <a href="/dashboard?tab=items_all">
+            <p class="accounts__main-heading" id="accounts__main-hover-one">
+                Товары
+
+            </p>
+        </a>
+        <a href="/dashboard?tab=all">
+            <p class="accounts__main-heading" id="accounts__main-hover-2">
+                Заказы
+
+            </p>
+        </a>
+    </div>
+    <div class="accounts__main-line">&nbsp;</div>
+    <div class="accounts__main-line-active">&nbsp;</div>
+
+    <div class="accounts__main__tab">
+
+    </div>
+    <p class="accounts__main__tab-button">&larr;</p>
+    {% if tab in ["items_all", "processing", "moderating", "processed", "failed_moderation", "failed_validation", "failed"] %}
+        <div class="accounts__main__tab-box">
+            {% if tab == "items_all" %}
+                <p>Все товары</p>
+            {% else %}
+                <a href="/dashboard?tab=items_all" class="accounts__main__tab-link">Все товары</a>
+            {% endif %}
+            {% if tab == "processing" %}
+                <p>Обрабатывается</p>
+            {% else %}
+                <a href="/dashboard?tab=processing" class="accounts__main__tab-link">Обрабатывается</a>
+            {% endif %}
+            {% if tab == "moderating" %}
+                <p>На модерации</p>
+            {% else %}
+                <a href="/dashboard?tab=moderating" class="accounts__main__tab-link">На модерации</a>
+            {% endif %}
+            {% if tab == "processed" %}
+                <p>Показывается</p>
+            {% else %}
+                <a href="/dashboard?tab=processed" class="accounts__main__tab-link">Показывается</a>
+            {% endif %}
+            {% if tab == "failed_moderation" %}
+                <p>Не прошли модерацию</p>
+            {% else %}
+                <a href="/dashboard?tab=failed_moderation" class="accounts__main__tab-link">Не прошли модерацию</a>
+            {% endif %}
+            {% if tab == "failed_validation" %}
+                <p>Не прошли валидацию</p>
+            {% else %}
+                <a href="/dashboard?tab=failed_validation" class="accounts__main__tab-link">Не прошли валидацию</a>
+            {% endif %}
+            {% if tab == "failed" %}
+                <p>Ошибка</p>
+            {% else %}
+                <a href="/dashboard?tab=failed" class="accounts__main__tab-link">Ошибка</a>
+            {% endif %}
+        </div>
+    {% elif tab in ["all", "awaiting_packaging", "awaiting_deliver", "arbitration", "delivering", "delivered", "cancelled"] %}
+        <div class="accounts__main__tab-box">
+            {% if tab == "all" %}
+                <p>Все заказы</p>
+            {% else %}
+                <a href="/dashboard?tab=all" class="accounts__main__tab-link">Все заказы</a>
+            {% endif %}
+            {% if tab == "awaiting_packaging" %}
+                <p>Ожидает упаковки</p>
+            {% else %}
+                <a href="/dashboard?tab=awaiting_packaging" class="accounts__main__tab-link">Ожидает упаковки</a>
+            {% endif %}
+            {% if tab == "awaiting_deliver" %}
+                <p>Ожидает отгрузки</p>
+            {% else %}
+                <a href="/dashboard?tab=awaiting_deliver" class="accounts__main__tab-link">Ожидает отгрузки</a>
+            {% endif %}
+            {% if tab == "arbitration" %}
+                <p>Спорные</p>
+            {% else %}
+                <a href="/dashboard?tab=arbitration" class="accounts__main__tab-link">Спорные</a>
+            {% endif %}
+            {% if tab == "delivering" %}
+                <p>Доставляется</p>
+            {% else %}
+                <a href="/dashboard?tab=delivering" class="accounts__main__tab-link">Доставляется</a>
+            {% endif %}
+            {% if tab == "delivered" %}
+                <p>Доставлено</p>
+            {% else %}
+                <a href="/dashboard?tab=delivered" class="accounts__main__tab-link">Доставлено</a>
+            {% endif %}
+            {% if tab == "cancelled" %}
+                <p>Отменено</p>
+            {% else %}
+                <a href="/dashboard?tab=cancelled" class="accounts__main__tab-link">Отменено</a>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <p class="accounts__main__tab-button accounts__main__tab-button-2">&rarr;</p>
+
+    <div class="accounts__main__tab-active">&nbsp;</div>
+
+    <p id="settings-open" class="accounts__main__tab-settings"><i class="fas fa-cog"></i></p>
+
+
+    <div class="accounts__main-table">
+        <div class="accounts__main-table-scroll">
+
+            {% if active == "dashboard" and tab in ["items_all", "processing", "moderating", "processed", "failed_moderation", "failed_validation", "failed"] %}
+                <button onclick="location.href='/update?q=items'" type="button" class="btn btn-success">Обновить</button>
+                {% if updating == "items" %}
+                    <div class="alert alert-success" role="alert">
+                        Список товаров скоро обновится
+                    </div>
+                {% endif %}
+                {% if data == "Нет данных для отображения" %}
+                    <h3>Нет данных для отображения</h3>
+                {% else %}
+                    <table id="items" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
+                        <thead>
+                        <tr>
+                            <th class="th-sm">Артикул</th>
+                            <th class="th-sm">Баркод</th>
+                            <th class="th-sm">Наименование</th>
+                            <th class="th-sm">Статус</th>
+                            <th class="th-sm">Картинка</th>
+                            <th class="th-sm">Видимость на сайте</th>
+                            <th class="th-sm">Доступно на складе, шт</th>
+                            <th class="th-sm">Текущая цена с учетом скидки, руб.</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for row in data %}
+                            <tr>
+                                {% for key in data[row].keys() %}
+                                    <td>
+                                        {% if key == "Картинка" %}
+                                            {% for i in data[row][key] %}
+                                                <img style="display:block;" align="center" width="100%" height="8%" class="zoom" src="{{ i }}">
+                                            {% endfor %}
+                                        {% elif key != "metadata" %}
+                                            {{ data[row][key] }}
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th class="th-sm">Артикул</th>
+                            <th class="th-sm">Баркод</th>
+                            <th class="th-sm">Наименование</th>
+                            <th class="th-sm">Статус</th>
+                            <th class="th-sm">Картинка</th>
+                            <th class="th-sm">Видимость на сайте</th>
+                            <th class="th-sm">Доступно на складе, шт</th>
+                            <th class="th-sm">Текущая цена с учетом скидки, руб.</th>
+                        </tr>
+                        </tfoot>
+                    </table>
+                    <script>
+                        $(document).ready(function() {
+                            $('#items').DataTable( {
+                                initComplete: function () {
+                                    this.api().columns().every( function () {
+                                        var column = this;
+                                        var select = $('<select><option value=""></option></select>')
+                                            .appendTo( $(column.footer()).empty() )
+                                            .on( 'change', function () {
+                                                var val = $.fn.dataTable.util.escapeRegex(
+                                                    $(this).val()
+                                                );
+                                                //to select and search from grid
+                                                column
+                                                    .search( val ? '^'+val+'$' : '', true, false )
+                                                    .draw();
+                                            } );
+
+                                        column.data().unique().sort().each( function ( d, j ) {
+                                            select.append( '<option value="'+d+'">'+d+'</option>' )
+                                        } );
+                                    } );
+                                }
+                            } );
+                        } );
+                    </script>
+                {% endif %}
+            {% elif active == "dashboard" and tab in ["all", "awaiting_packaging", "awaiting_deliver", "arbitration",
+                                          "delivering", "delivered", "cancelled_user", "cancelled_deliver"] %}
+                <button onclick="location.href='/update?q=postings&u={{ cur_pos }}'" type="button" class="btn btn-success">Обновить</button>
+                <button onclick="location.href='/get_act?u={{ cur_pos }}'" type="button" class="btn btn-success">Распечатать акты</button>
+                {% if tab == "awaiting_packaging" %}
+                    <p>
+
+                        <input type ="submit" name="action" value="Распечатать маркировки">
+                    </p>
+                {% endif %}
+                {% if getting == "act" %}
+                    <div class="alert alert-success" role="alert">
+                        Акт формируется, зайдите в Загрузки
+                    </div>
+                {% endif %}
+                {% if updating == "postings" %}
+                    <div class="alert alert-success" role="alert">
+                        Список заказов скоро обновится
+                    </div>
+                {% endif %}
+
+                {% if data == "Нет данных для отображения" %}
+                    <h3>Нет данных для отображения</h3>
+                {% else %}
+                    <table id="items" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
+                        <thead>
+                        <tr>
+                            {% if tab == "awaiting_packaging" %}
+                                <th class="th-sm">‎</th>
+                            {% endif %}
+                            <th class="th-sm">Принят в обработку</th>
+                            <th class="th-sm">Номер заказа</th>
+                            <th class="th-sm">Номер отправления</th>
+                            <th class="th-sm">Детали отправления</th>
+                            <th class="th-sm">Картинка</th>
+                            <th class="th-sm">Видимость на сайте</th>
+                            <th class="th-sm">Стоимость</th>
+                            <th class="th-sm">Дата отгрузки</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for row in data %}
+                            <tr>
+                                {% if tab == "awaiting_packaging" %}
+                                    <td><input type="checkbox" value={{ data[row]["Номер отправления"] }} class="danger" name='posting_labels'></td>
+                                {% endif %}
+                                {% for key in data[row].keys() %}
+                                    <td>
+                                        {% if key == "Картинка" %}
+                                            {% for i in data[row][key] %}
+                                                <img style="display:block;" align="center" width="100%" height="8%" class="zoom" src="{{ i }}">
+                                            {% endfor %}
+                                        {% elif key != "metadata" %}
+                                            {{ data[row][key] }}
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th class="th-sm">Принят в обработку</th>
+                            <th class="th-sm">Номер заказа</th>
+                            <th class="th-sm">Номер отправления</th>
+                            <th class="th-sm">Детали отправления</th>
+                            <th class="th-sm">Картинка</th>
+                            <th class="th-sm">Видимость на сайте</th>
+                            <th class="th-sm">Стоимость</th>
+                            <th class="th-sm">Дата отгрузки</th>
+                        </tr>
+                        </tfoot>
+                    </table>
+                    <script>
+                        $(document).ready(function() {
+                            $('#items').DataTable( {
+                                initComplete: function () {
+                                    this.api().columns().every( function () {
+                                        var column = this;
+                                        var select = $('<select><option value=""></option></select>')
+                                            .appendTo( $(column.footer()).empty() )
+                                            .on( 'change', function () {
+                                                var val = $.fn.dataTable.util.escapeRegex(
+                                                    $(this).val()
+                                                );
+                                                //to select and search from grid
+                                                column
+                                                    .search( val ? '^'+val+'$' : '', true, false )
+                                                    .draw();
+                                            } );
+
+                                        column.data().unique().sort().each( function ( d, j ) {
+                                            select.append( '<option value="'+d+'">'+d+'</option>' )
+                                        } );
+                                    } );
+                                }
+                            } );
+                        } );
+                    </script>
+                {% endif %}
+            {% endif %}
+
+
+        </div>
+    </div>
+{% else %}
+    <h3>Здесь будет раздел</h3>
+{% endif %}
+
+<div class="accounts__settings"></div>
+ <h1 id="settings-close" class="accounts__settings-heading"><i class="fas fa-cog"></i> Настройки</h1>
+     <ul  class="accounts__settings-list">
+        <input type="checkbox" id="checkbox-1" checked class="authorization__checked " name="" id=""><label class="authorization__checked-label accounts__settings-checked" for="checkbox-1"> <p class="authorization__text accounts__settings-label">Дата</p></label>
+        <input type="checkbox" id="checkbox-2" checked class="authorization__checked " name="" id=""><label class="authorization__checked-label accounts__settings-checked" for="checkbox-2"> <p class="authorization__text accounts__settings-label">Номер Заказа</p></label>
+        <input type="checkbox" id="checkbox-3" checked class="authorization__checked " name="" id=""><label class="authorization__checked-label accounts__settings-checked" for="checkbox-3"> <p class="authorization__text accounts__settings-label">Номер Отправления</p></label>
+        <input type="checkbox" id="checkbox-4" checked class="authorization__checked " name="" id=""><label class="authorization__checked-label accounts__settings-checked" for="checkbox-4"> <p class="authorization__text accounts__settings-label">Детали Отправления</p></label>
+        <input type="checkbox" id="checkbox-5" checked class="authorization__checked " name="" id=""><label class="authorization__checked-label accounts__settings-checked" for="checkbox-5"> <p class="authorization__text accounts__settings-label">Стоимость</p></label>
+        <input type="checkbox" id="checkbox-6" checked class="authorization__checked " name="" id=""><label class="authorization__checked-label accounts__settings-checked" for="checkbox-6"> <p class="authorization__text accounts__settings-label">Статус</p></label>
+        <input type="checkbox" id="checkbox-7" checked class="authorization__checked " name="" id=""><label class="authorization__checked-label accounts__settings-checked" for="checkbox-7"> <p class="authorization__text accounts__settings-label">Маркировка</p></label>
+    </ul>
+
+
+
+<div class="accounts__storage">
+    <p class="accounts__storage__heading">На моём складе</p>
+</div>
+
+{% for i in range(1, accounts|length + 1) %}
+<script>
+        $("#account-{{ i }}-click").click(function(){
+       
+       $("#account-{{ i }}").css({
+           "visibility":"visible",
+         }).animate({
+           "height":"467px",
+           "opacity": "1"
+       },600,'easeInOutQuint')
+
+       $("#current-page-hover").addClass("accounts__menu-item-hover-active")
+       $("#current-page").addClass("accounts__menu-item-active")
+   })
+
+
+
+   $("#account-{{ i }}-close").click(function(){
+      
+      $("#account-{{ i }}").css({
+        "height":"0",
+         "visibility":"hidden",
+       }).animate({"opacity": "0"},600);
+       $(".accounts__menu-item-hover .accounts__menu-item-hover-hover").css({
+         "visibility":"hidden",
+       }).animate({"opacity": "0"},600);
+       $("#current-page-hover").removeClass("accounts__menu-item-hover-active")
+      $("#current-page").removeClass("accounts__menu-item-active")
+   })
+</script>
+
+{% endfor %}
+</div>
+</body>
+</html>
