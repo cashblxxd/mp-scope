@@ -19,6 +19,7 @@ def check():
     if "uid" not in session:
         session["uid"] = secrets.token_urlsafe()
         return redirect("/login")
+    print(session["uid"])
     mongosession = get_session(session["uid"])
     if mongosession is None or len(mongosession["order"]) == 0:
         return redirect("/login")
@@ -28,6 +29,7 @@ def check():
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     check()
+    pprint(mongosession)
     if request.method == 'POST':
         posting_numbers = request.form.getlist('posting_labels')
         if posting_numbers:
