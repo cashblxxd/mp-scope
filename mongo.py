@@ -2,9 +2,9 @@ import pymongo
 from pprint import pprint
 import secrets
 from mongo_queue.queue import Queue
-import time
 import string
 import random
+import gridfs
 
 
 client = pymongo.MongoClient("mongodb+srv://dbUser:qwep-]123p=]@cluster0-ifgr4.mongodb.net/Cluster0?retryWrites=true&w=majority")
@@ -25,6 +25,10 @@ def user_exist(username, password):
 def clear_queue():
     client.update_queue_db.update_queue.delete_many({})
     client.update_queue_db.job_ids.delete_many({})
+    client.update_queue_db.sessions_active.delete_many({})
+
+
+#clear_queue()
 
 
 def get_session(uid):
@@ -40,7 +44,7 @@ def init_session(uid):
         "order": [],
         "cur_pos": 1,
         "active": "dashboard",
-        "tab": "visible"
+        "tab": "items_all"
     })
 
 
@@ -89,6 +93,61 @@ def get_postings(api_key, client_id):
 #mark_done("job1234")
 
 
+def save_file(api_key, client_id, name, content):
+    fs = gridfs.GridFS(client.files)
+    file_id = fs.put(content, filename=name)
+    data = client.user_files_list.user_files_list.find_one({
+        "creds": f"{api_key}:{client_id}"
+    })
+    if data is None:
+        data = {
+            "creds": f"{api_key}:{client_id}",
+            "data": {},
+        }
+    data["data"][name] = {
+        "file_id": file_id
+    }
+    if "_id" in data:
+        client.user_files_list.user_files_list.update_one({
+            "_id": data["_id"]
+        }, {"$set": data})
+    else:
+        client.user_files_list.user_files_list.insert_one(data)
+
+
+def get_files_list(api_key, client_id):
+    data = client.user_files_list.user_files_list.find_one({
+        "creds": f"{api_key}:{client_id}"
+    })
+    if data is None:
+        return {}
+    return data["data"]
+
+
+def get_file(f_id):
+    fs = gridfs.GridFS(client.files)
+    return fs.get(f_id).read()
+
+
+def delete_file(api_key, client_id, filename):
+    data = client.user_files_list.user_files_list.find_one({
+        "creds": f"{api_key}:{client_id}"
+    })
+    if data is None:
+        return
+    pprint(data)
+    delete_file_gridfs(data["data"][filename]["file_id"])
+    data["data"].pop(filename, 0)
+    client.user_files_list.user_files_list.update_one({
+        "_id": data["_id"]
+    }, {"$set": data})
+
+
+def delete_file_gridfs(f_id):
+    fs = gridfs.GridFS(client.files)
+    fs.delete(f_id)
+
+
 def insert_deliver_job(api_key, client_id, posting_numbers, job_id):
     queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
     queue.put({"api_key": api_key, "client_id": client_id, "posting_numbers": posting_numbers,  "job_id": job_id}, channel="deliver_queue")
@@ -123,6 +182,12 @@ def insert_postings_regular_update(api_key, client_id, job_id):
 def insert_act_job(api_key, client_id, job_id):
     queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
     queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id}, channel="act_queue")
+    mark_pending(job_id)
+
+
+def insert_labels_upload_job(api_key, client_id, posting_numbers, job_id):
+    queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
+    queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id, "posting_numbers": posting_numbers}, channel="labels_queue")
     mark_pending(job_id)
 
 
@@ -187,17 +252,4 @@ def get_confirmation_token(token):
         return False, 'Not found'
     username, password = data["username"], data["password"]
     client.users.confirmation_tokens.delete_one(data)
-
     return True, (username, password)
-'''
-def
-db = client["Database0"]
-collection = db["Collection0"]
-inserted_id = collection.insert_one({
-    "user_id": 2,
-    "client_id": 836,
-    "api_key": "y72g8e87q3us8f9es-dawdyduyegus"
-}).inserted_id
-print(db.list_collection_names())
-pprint(collection.find_one())
-pprint(collection.find_one({"_id": inserted_id}))'''

@@ -5,12 +5,12 @@ from mongo_queue.queue import Queue
 import time
 import datetime
 import dateutil.relativedelta
-from ozon_api import get_postings_list, get_posting_info, get_items_ids, get_item_info, print_acts, get_item_state_rev
+from ozon_api import get_postings_list, get_posting_info, get_items_ids, get_item_info, print_acts, get_item_state_rev, get_labels
 import random
 import string
-from mongo import mark_done
-import gridfs
+from mongo import mark_done, get_files_list, get_file, save_file
 import requests
+import multiprocessing
 
 
 def update_postings(api_key, client_id):
@@ -114,54 +114,6 @@ def update_items(api_key, client_id):
     print("updated!")
 
 
-def delete_act_file(f_id):
-    fs = gridfs.GridFS(client.files.acts)
-    fs.delete(f_id)
-
-
-def get_act_file(f_id):
-    fs = gridfs.GridFS(client.files.acts)
-    return fs.get(f_id).read()
-
-
-def delete_act(api_key, client_id, filename):
-    data = client.user_files_list.user_files_list.find_one({
-        "creds": f"{api_key}:{client_id}"
-    })
-    if data is None:
-        return
-    file_id = data["data"][filename]["file_id"]
-    delete_act_file(file_id)
-    data["data"].pop(filename, 0)
-    client.user_files_list.user_files_list.update_one({
-        "_id": data["_id"]
-    }, {"$set": data})
-
-
-def upload_act_file(api_key, client_id):
-    name, content = print_acts(api_key, client_id)
-    print(name)
-    fs = gridfs.GridFS(client.files.acts)
-    file_id = fs.put(content, filename=name)
-    data = client.user_files_list.user_files_list.find_one({
-        "creds": f"{api_key}:{client_id}"
-    })
-    if data is None:
-        data = {
-            "creds": f"{api_key}:{client_id}",
-            "data": {},
-        }
-    data["data"][name] = {
-        "file_id": file_id
-    }
-    if "_id" in data:
-        client.user_files_list.user_files_list.update_one({
-            "_id": data["_id"]
-        }, {"$set": data})
-    else:
-        client.user_files_list.user_files_list.insert_one(data)
-
-
 def deliver_postings(api_key, client_id, postings_numbers):
     data = client.ozon_data.postings.find_one({
         "creds": f"{api_key}:{client_id}"
@@ -197,39 +149,61 @@ def deliver_postings(api_key, client_id, postings_numbers):
     return True,
 
 
+def get_test():
+    flist = get_files_list("68349970-1c11-412a-a3f6-19ac61b94210", "33345")
+    content = get_file(flist[list(flist.keys())[2]]["file_id"])
+    with open("file.pdf", "wb") as f:
+        f.write(content)
+
+
+def upload_act_file(api_key, client_id):
+    name, content = print_acts(api_key, client_id)
+    save_file(api_key, client_id, name, content)
+
+
+def upload_labels(api_key, client_id, posting_numbers):
+    name, content = get_labels(api_key, client_id, posting_numbers)
+    save_file(api_key, client_id, name, content)
+
+
 def work(channel="postings_priority"):
     """
     :param
-    channel: ["items_priority", "items_queue", "postings_priority", "postings_queue", "act_queue", "deliver_queue"]
+    channel: ["items_priority", "items_queue", "postings_priority", "postings_queue", "act_queue", "labels_queue", "deliver_queue"]
     :return: None
     """
     queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
     while True:
-        k = queue.next(channel=channel)
-        if k:
-            print(k.job_id)
-            job_data = k.payload
-            print("look ma i got a job")
-            pprint(job_data)
-            if channel.startswith("postings"):
-                update_postings(job_data["api_key"], job_data["client_id"])
-            elif channel.startswith("items"):
-                print("gotta update items")
-                update_items(job_data["api_key"], job_data["client_id"])
-            elif channel.startswith("act"):
-                upload_act_file(job_data["api_key"], job_data["client_id"])
-            elif channel.startswith("deliver"):
-                deliver_postings(job_data["api_key"], job_data["client_id"], job_data["posting_numbers"])
-            mark_done(job_data["job_id"])
-            k.complete()
-            try:
-                pass
-            except Exception as e:
-                print(e)
-                k.release()
-        time.sleep(2)
+        for channel in ["items_priority", "items_queue", "postings_priority", "postings_queue", "act_queue", "labels_queue", "deliver_queue"]:
+            k = queue.next(channel=channel)
+            if k:
+                #print(k.job_id)
+                job_data = k.payload
+                #print("look ma i got a job")
+                pprint(job_data)
+                try:
+                    if channel.startswith("postings"):
+                        update_postings(job_data["api_key"], job_data["client_id"])
+                    elif channel.startswith("items"):
+                        #print("gotta update items")
+                        update_items(job_data["api_key"], job_data["client_id"])
+                    elif channel.startswith("act"):
+                        upload_act_file(job_data["api_key"], job_data["client_id"])
+                    elif channel.startswith("labels"):
+                        upload_labels(job_data["api_key"], job_data["client_id"], job_data["posting_numbers"])
+                    elif channel.startswith("deliver"):
+                        deliver_postings(job_data["api_key"], job_data["client_id"], job_data["posting_numbers"])
+                    mark_done(job_data["job_id"])
+                    k.complete()
+                except Exception as e:
+                    #print(e)
+                    k.release()
 
 
 if __name__ == "__main__":
     client = pymongo.MongoClient("mongodb+srv://dbUser:qwep-]123p=]@cluster0-ifgr4.mongodb.net/Cluster0?retryWrites=true&w=majority")
-    work("act_queue")
+    '''for channel in ["items_priority", "items_queue", "postings_priority", "postings_queue", "act_queue", "labels_queue", "deliver_queue"]:
+        d = multiprocessing.Process(name=secrets.token_urlsafe(), target=work, args=(channel,))
+        d.start()
+        d.join()'''
+    work()

@@ -77,6 +77,17 @@
                         <div class="accounts__menu-item-hover">&nbsp;</div>
                     </a>
                 {% endif %}
+                {% if i == cur_pos and active == "downloads" %}
+                    <a href="/dashboard?u={{ i }}&page=downloads" class="accounts__menu-item accounts__menu-item-active">
+                        <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp;</i> Загрузки
+                        <div class="accounts__menu-item-hover accounts__menu-item-hover-active">&nbsp;</div>
+                    </a>
+                {% else %}
+                    <a href="/dashboard?u={{ i }}&page=downloads" class="accounts__menu-item">
+                        <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp;</i> Загрузки
+                        <div class="accounts__menu-item-hover">&nbsp;</div>
+                    </a>
+                {% endif %}
                 {% if i == cur_pos and active == "dynamics" %}
                     <a href="/dashboard?u={{ i }}&page=dynamics" class="accounts__menu-item accounts__menu-item-active">
                         <i class="fas fa-chart-bar"></i>&nbsp;&nbsp;</i> Динамика
@@ -400,11 +411,13 @@
                                           "delivering", "delivered", "cancelled_user", "cancelled_deliver"] %}
                 <button onclick="location.href='/update?q=postings&u={{ cur_pos }}'" type="button" class="btn btn-success">Обновить</button>
                 <button onclick="location.href='/get_act?u={{ cur_pos }}'" type="button" class="btn btn-success">Распечатать акты</button>
+                {% if tab == "awaiting_deliver" %}
+                    <form method="post">
+                    <input type="submit" name="action" value="Распечатать маркировки">
+                {% endif %}
                 {% if tab == "awaiting_packaging" %}
-                    <p>
-
-                        <input type ="submit" name="action" value="Распечатать маркировки">
-                    </p>
+                    <form method="post">
+                    <input type="submit" name="action" value="Собрать выбранные">
                 {% endif %}
                 {% if getting == "act" %}
                     <div class="alert alert-success" role="alert">
@@ -439,7 +452,7 @@
                         <tbody>
                         {% for row in data %}
                             <tr>
-                                {% if tab == "awaiting_packaging" %}
+                                {% if tab in ["awaiting_packaging", "awaiting_deliver"] %}
                                     <td><input type="checkbox" value={{ data[row]["Номер отправления"] }} class="danger" name='posting_labels'></td>
                                 {% endif %}
                                 {% for key in data[row].keys() %}
@@ -498,12 +511,34 @@
                     </script>
                 {% endif %}
             {% endif %}
-
+            {% if tab in ["awaiting_packaging", "awaiting_deliver"] %}
+                </form>
+            {% endif %}
 
         </div>
     </div>
+{% elif active == "downloads" %}
+<div class="accounts__main-table">
+    {% if updating == "file_deleted" %}
+        <div class="alert alert-success" role="alert">
+            Файл удалён
+        </div>
+    {% endif %}
+    <div class="accounts__main-table-scroll">
+        {% for filename in data %}
+            <div>
+                <a href="/posting_labels?u={{ cur_pos }}&q={{ filename }}">{{ filename }}</a>
+                <a href="/delete_file?u={{ cur_pos }}&q={{ filename }}">🗑</a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
 {% else %}
-    <h3>Здесь будет раздел</h3>
+    <div class="accounts__main-table">
+        <div class="accounts__main-table-scroll">
+            <h2>Здесь будет раздел</h2>
+        </div>
+    </div>
 {% endif %}
 
 <div class="accounts__settings"></div>
