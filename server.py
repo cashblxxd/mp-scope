@@ -21,6 +21,7 @@ def check():
         return redirect("/login")
     print(session["uid"])
     mongosession = get_session(session["uid"])
+    print(mongosession, mongosession is None, type(mongosession))
     if mongosession is None or len(mongosession["order"]) == 0:
         return redirect("/logout")
 
