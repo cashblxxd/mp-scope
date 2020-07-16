@@ -13,6 +13,7 @@ import io
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "OCML3BRawWEUeaxcuKHLpw"
 app.secret_key = "OCML3BRawWEUeaxcuKHLpw"
+mgclient = 0
 
 
 @app.route('/', methods=['GET', 'POST'])
