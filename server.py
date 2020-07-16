@@ -1,4 +1,5 @@
 from flask import *
+import pymongo
 from mongo import user_exist, username_taken, put_confirmation_token, get_confirmation_token, user_create,\
     get_session, init_session, modify_session, delete_session, get_items, get_postings, insert_postings_update_job, \
     insert_items_update_job, insert_act_job, get_items_ids, get_postings_ids, insert_labels_upload_job, insert_deliver_job,\
@@ -21,7 +22,7 @@ def dashboard():
         session["uid"] = secrets.token_urlsafe()
         return redirect("/login")
     print(session["uid"])
-    mongosession = get_session(session["uid"])
+    mongosession = get_session(session["uid"], mgclient)
     if mongosession is None or len(mongosession["order"]) == 0:
         return redirect("/login")
     pprint(mongosession)
@@ -30,10 +31,10 @@ def dashboard():
         if posting_numbers:
             if request.form['action'] == 'Распечатать маркировки':
                 user = mongosession["users"][mongosession["order"][mongosession["cur_pos"] - 1]]
-                insert_labels_upload_job(user["ozon_apikey"], user["client_id"], posting_numbers, f'labels_queue:{user["ozon_apikey"]}:{user["client_id"]}')
+                insert_labels_upload_job(user["ozon_apikey"], user["client_id"], posting_numbers, f'labels_queue:{user["ozon_apikey"]}:{user["client_id"]}', mgclient)
             if request.form['action'] == 'Собрать выбранные':
                 user = mongosession["users"][mongosession["order"][mongosession["cur_pos"] - 1]]
-                insert_deliver_job(user["ozon_apikey"], user["client_id"], posting_numbers, f'deliver_queue:{user["ozon_apikey"]}:{user["client_id"]}')
+                insert_deliver_job(user["ozon_apikey"], user["client_id"], posting_numbers, f'deliver_queue:{user["ozon_apikey"]}:{user["client_id"]}', mgclient)
     """
     :param
     active: ["dashboard", "downloads", "dynamics", "sales", "analysis", "mp_purchases", "losses", "map", "traffic", "competitiors", "facilities", "settings"]
@@ -67,40 +68,40 @@ def dashboard():
         if mongosession["tab"] in {"items_all", "processing", "moderating", "processed", "failed_moderation",
                                    "failed_validation", "failed"}:
             user = mongosession["users"][mongosession["order"][mongosession["cur_pos"] - 1]]
-            data = get_items(user["ozon_apikey"], user["client_id"])
+            data = get_items(user["ozon_apikey"], user["client_id"], mgclient)
             if data is None:
                 data = "Нет данных для отображения"
             else:
                 data = data["data"]
-            pprint(data)
-            if mongosession["tab"] != "items_all":
-                ids = get_items_ids(user["ozon_apikey"], user["client_id"], mongosession["tab"])
-                data_new = {}
-                for i in ids:
-                    data_new[i] = data[i]
-                data = data_new
-                if not data:
-                    data = "Нет данных для отображения"
+                pprint(data)
+                if mongosession["tab"] != "items_all":
+                    ids = get_items_ids(user["ozon_apikey"], user["client_id"], mgclient, mongosession["tab"])
+                    data_new = {}
+                    for i in ids:
+                        data_new[i] = data[i]
+                    data = data_new
+                    if not data:
+                        data = "Нет данных для отображения"
         elif mongosession["tab"] in {"all", "awaiting_packaging", "awaiting_deliver", "arbitration",
                                      "delivering", "delivered", "cancelled"}:
             user = mongosession["users"][mongosession["order"][mongosession["cur_pos"] - 1]]
-            data = get_postings(user["ozon_apikey"], user["client_id"])
+            data = get_postings(user["ozon_apikey"], user["client_id"], mgclient)
             if data is None:
                 data = "Нет данных для отображения"
             else:
                 data = data["data"]
-            if mongosession["tab"] != "all":
-                ids = get_postings_ids(user["ozon_apikey"], user["client_id"], mongosession["tab"])
-                data_new = {}
-                for i in ids:
-                    data_new[i] = data[i]
-                data = data_new
-                if not data:
-                    data = "Нет данных для отображения"
+                if mongosession["tab"] != "all":
+                    ids = get_postings_ids(user["ozon_apikey"], user["client_id"], mgclient, mongosession["tab"])
+                    data_new = {}
+                    for i in ids:
+                        data_new[i] = data[i]
+                    data = data_new
+                    if not data:
+                        data = "Нет данных для отображения"
     elif mongosession["active"] == "downloads":
         user = mongosession["users"][mongosession["order"][mongosession["cur_pos"] - 1]]
-        data = get_files_list(user["ozon_apikey"], user["client_id"])
-    modify_session(session["uid"], mongosession)
+        data = get_files_list(user["ozon_apikey"], user["client_id"], mgclient)
+    modify_session(session["uid"], mongosession, mgclient)
     pprint(mongosession)
     return render_template("accounts-12.html", data=data, accounts=mongosession["order"], cur_pos=mongosession["cur_pos"], active=mongosession["active"], tab=mongosession["tab"], updating=updating, getting=getting)
 
@@ -111,17 +112,17 @@ def posting_labels():
         session["uid"] = secrets.token_urlsafe()
         return redirect("/login")
     print(session["uid"])
-    mongosession = get_session(session["uid"])
+    mongosession = get_session(session["uid"], mgclient)
     if mongosession is None or len(mongosession["order"]) == 0:
         return redirect("/login")
     q, u = request.args.get("q", "none"), request.args.get("u", "none")
     if q == "none" or u == "none" or not u.isdigit() or int(u) > len(mongosession["order"]):
         return redirect("/dashboard")
     user = mongosession["users"][mongosession["order"][int(u) - 1]]
-    flist = get_files_list(user["ozon_apikey"], user["client_id"])
+    flist = get_files_list(user["ozon_apikey"], user["client_id"], mgclient)
     if q not in flist:
         return redirect("/dashboard")
-    return send_file(io.BytesIO(get_file(flist[q]["file_id"])), attachment_filename=q + '.pdf', as_attachment=True, mimetype="application/pdf")
+    return send_file(io.BytesIO(get_file(flist[q]["file_id"], mgclient)), attachment_filename=q + '.pdf', as_attachment=True, mimetype="application/pdf")
 
 
 @app.route('/delete_file', methods=['GET', 'POST'])
@@ -130,7 +131,7 @@ def mark_delete():
         session["uid"] = secrets.token_urlsafe()
         return redirect("/login")
     print(session["uid"])
-    mongosession = get_session(session["uid"])
+    mongosession = get_session(session["uid"], mgclient)
     if mongosession is None or len(mongosession["order"]) == 0:
         return redirect("/login")
     q, u = request.args.get("q", "none"), request.args.get("u", "none")
@@ -139,7 +140,7 @@ def mark_delete():
     print(q, u)
     user = mongosession["users"][mongosession["order"][int(u) - 1]]
     try:
-        delete_file(user["ozon_apikey"], user["client_id"], q)
+        delete_file(user["ozon_apikey"], user["client_id"], q, mgclient)
     except Exception as e:
         print(e)
     return redirect("/dashboard?updating=file_deleted")
@@ -151,7 +152,7 @@ def update():
         session["uid"] = secrets.token_urlsafe()
         return redirect("/login")
     print(session["uid"])
-    mongosession = get_session(session["uid"])
+    mongosession = get_session(session["uid"], mgclient)
     if mongosession is None or len(mongosession["order"]) == 0:
         return redirect("/login")
     q, u = request.args.get("q", "none"), request.args.get("u", "none")
@@ -161,10 +162,10 @@ def update():
         u = mongosession["cur_pos"]
     user = mongosession["users"][mongosession["order"][int(u) - 1]]
     if q == "items":
-        insert_items_update_job(user["ozon_apikey"], user["client_id"], f'items_update:{user["ozon_apikey"]}:{user["client_id"]}')
+        insert_items_update_job(user["ozon_apikey"], user["client_id"], f'items_update:{user["ozon_apikey"]}:{user["client_id"]}', mgclient)
         return redirect(f"/dashboard?updating={q}")
     if q == "postings":
-        insert_postings_update_job(user["ozon_apikey"], user["client_id"], f'postings_update:{user["ozon_apikey"]}:{user["client_id"]}')
+        insert_postings_update_job(user["ozon_apikey"], user["client_id"], f'postings_update:{user["ozon_apikey"]}:{user["client_id"]}', mgclient)
         return redirect("/dashboard?updating=postings")
 
 
@@ -174,14 +175,14 @@ def get_act():
         session["uid"] = secrets.token_urlsafe()
         return redirect("/login")
     print(session["uid"])
-    mongosession = get_session(session["uid"])
+    mongosession = get_session(session["uid"], mgclient)
     if mongosession is None or len(mongosession["order"]) == 0:
         return redirect("/login")
     u = request.args.get("u", "none")
     if not u.isdigit():
         u = mongosession["cur_pos"]
     user = mongosession["users"][mongosession["order"][int(u) - 1]]
-    insert_act_job(user["ozon_apikey"], user["client_id"], f'get_act:{user["ozon_apikey"]}:{user["client_id"]}')
+    insert_act_job(user["ozon_apikey"], user["client_id"], f'get_act:{user["ozon_apikey"]}:{user["client_id"]}', mgclient)
     return redirect("/dashboard?getting=act")
 
 
@@ -189,27 +190,27 @@ def get_act():
 def confirm_join():
     token = request.args.get("token", "")
     if token:
-        response, message = get_confirmation_token(token)
+        response, message = get_confirmation_token(token, mgclient)
         if response:
             username, password = message
-            response, data = user_create(username, password)
+            response, data = user_create(username, password, mgclient)
             if response:
                 if "uid" not in session:
                     session["uid"] = secrets.token_urlsafe()
-                mongosession = get_session(session["uid"])
+                mongosession = get_session(session["uid"], mgclient)
                 if mongosession is None or len(mongosession["order"]) == 0:
-                    init_session(session["uid"])
-                    mongosession = get_session(session["uid"])
+                    init_session(session["uid"], mgclient)
+                    mongosession = get_session(session["uid"], mgclient)
                 mongosession["users"][username] = data
                 mongosession["order"] = mongosession.get("order", []) + [username]
-                modify_session(session["uid"], mongosession)
+                modify_session(session["uid"], mongosession, mgclient)
                 return redirect("/")
     return render_template("login.html")
 
 
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
-    delete_session(session.get("uid", "-"))
+    delete_session(session.get("uid", "-"), mgclient)
     session.pop("uid", None)
     return redirect("/login")
 
@@ -219,22 +220,22 @@ def login():
     if request.method == 'POST':
         username, password = request.form.get("username", ""), request.form.get("password", "")
         if username and password:
-            response = user_exist(username, password)
+            response = user_exist(username, password, mgclient)
             if response[0]:
                 data = response[1]
                 if "uid" not in session:
                     session["uid"] = secrets.token_urlsafe()
-                mongosession = get_session(session["uid"])
+                mongosession = get_session(session["uid"], mgclient)
                 if mongosession is None or len(mongosession["order"]) == 0:
-                    init_session(session["uid"])
-                    mongosession = get_session(session["uid"])
+                    init_session(session["uid"], mgclient)
+                    mongosession = get_session(session["uid"], mgclient)
                 mongosession["users"][username] = data
                 mongosession["order"] = mongosession.get("order", []) + [username]
-                modify_session(session["uid"], mongosession)
+                modify_session(session["uid"], mongosession, mgclient)
                 return redirect("/")
             else:
                 return render_template("login.html", attempt=True)
-        return redirect("/")
+        return render_template("login.html")
     return render_template("login.html")
 
 
@@ -243,8 +244,8 @@ def join():
     if request.method == 'POST':
         email, password = request.form.get("email", ""), request.form.get("password", "")
         if email and password:
-            if not username_taken(email):
-                token = put_confirmation_token(email, password)
+            if not username_taken(email, mgclient):
+                token = put_confirmation_token(email, password, mgclient)
                 send_join_mail(email, token)
                 return render_template("join_success.html")
             else:
@@ -253,4 +254,7 @@ def join():
 
 
 if __name__ == '__main__':
-    app.run(port=8080, host='127.0.0.1')
+    global mgclient
+    mgclient = pymongo.MongoClient("mongodb+srv://dbUser:qwep-]123p=]@cluster0-ifgr4.mongodb.net/Cluster0?retryWrites=true&w=majority")
+    app.jinja_env.cache = {}
+    app.run(port=8080, host='127.0.0.1', threaded=True)

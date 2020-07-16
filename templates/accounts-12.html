@@ -352,13 +352,13 @@
                         <tbody>
                         {% for row in data %}
                             <tr>
-                                {% for key in data[row].keys() %}
+                                {% for key in ["Артикул", "Баркод", "Наименование", "Статус", "Картинка", "Видимость на сайте", "Доступно на складе, шт", "Текущая цена с учетом скидки, руб"] %}
                                     <td>
                                         {% if key == "Картинка" %}
                                             {% for i in data[row][key] %}
                                                 <img style="display:block;" align="center" width="100%" height="8%" class="zoom" src="{{ i }}">
                                             {% endfor %}
-                                        {% elif key != "metadata" %}
+                                        {% else %}
                                             {{ data[row][key] }}
                                         {% endif %}
                                     </td>
@@ -444,7 +444,6 @@
                             <th class="th-sm">Номер отправления</th>
                             <th class="th-sm">Детали отправления</th>
                             <th class="th-sm">Картинка</th>
-                            <th class="th-sm">Видимость на сайте</th>
                             <th class="th-sm">Стоимость</th>
                             <th class="th-sm">Дата отгрузки</th>
                         </tr>
@@ -455,13 +454,13 @@
                                 {% if tab in ["awaiting_packaging", "awaiting_deliver"] %}
                                     <td><input type="checkbox" value={{ data[row]["Номер отправления"] }} class="danger" name='posting_labels'></td>
                                 {% endif %}
-                                {% for key in data[row].keys() %}
+                                {% for key in ["Принят в обработку", "Номер заказа", "Номер отправления", "Детали отправления", "Картинка", "Стоимость", "Дата отгрузки"] %}
                                     <td>
                                         {% if key == "Картинка" %}
                                             {% for i in data[row][key] %}
                                                 <img style="display:block;" align="center" width="100%" height="8%" class="zoom" src="{{ i }}">
                                             {% endfor %}
-                                        {% elif key != "metadata" %}
+                                        {% else %}
                                             {{ data[row][key] }}
                                         {% endif %}
                                     </td>
