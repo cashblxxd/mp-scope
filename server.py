@@ -255,7 +255,6 @@ def join():
 
 
 if __name__ == '__main__':
-    global mgclient
     mgclient = pymongo.MongoClient("mongodb+srv://dbUser:qwep-]123p=]@cluster0-ifgr4.mongodb.net/Cluster0?retryWrites=true&w=majority")
     app.jinja_env.cache = {}
     app.run(port=8080, host='127.0.0.1', threaded=True)
