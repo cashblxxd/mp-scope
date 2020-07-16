@@ -13,7 +13,8 @@ import io
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "OCML3BRawWEUeaxcuKHLpw"
 app.secret_key = "OCML3BRawWEUeaxcuKHLpw"
-mgclient = 0
+app.jinja_env.cache = {}
+mgclient = pymongo.MongoClient("mongodb+srv://dbUser:qwep-]123p=]@cluster0-ifgr4.mongodb.net/Cluster0?retryWrites=true&w=majority")
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -254,7 +255,7 @@ def join():
     return render_template("registration.html")
 
 
+'''
 if __name__ == '__main__':
-    mgclient = pymongo.MongoClient("mongodb+srv://dbUser:qwep-]123p=]@cluster0-ifgr4.mongodb.net/Cluster0?retryWrites=true&w=majority")
-    app.jinja_env.cache = {}
     app.run(port=8080, host='127.0.0.1', threaded=True)
+'''
