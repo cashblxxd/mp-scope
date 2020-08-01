@@ -66,10 +66,10 @@
                                         <a class="acc_head accordeon-head" href="#">{{ accounts[i] }}</a>
                                         <ul class="item_acc accordeon-body">
                                             <li {% if panel == "dashboard" %} class="active" {% endif %}>
-                                                <a href="/dashboard?panel=dashboard">MP-Scope</a>
+                                                <a href="/dashboard?u={{ i }}&panel=dashboard">MP-Scope</a>
                                             </li>
                                             <li {% if panel == "downloads" %} class="active" {% endif %}>
-                                                <a href="/dashboard?panel=downloads">Загрузки</a>
+                                                <a href="/dashboard?u={{ i }}&panel=downloads">Загрузки</a>
                                             </li>
                                             <li {% if panel == "dynamics" %} class="active" {% endif %}>
                                                 <a class="din" href="/dashboard?u={{ i }}&panel=dynamics">Динамика</a>
