@@ -1,10 +1,25 @@
 $(document).ready(function() {
+
+  //pagination and search table  
+
+  $('.bootstrap-table').fancyTable({
+    sortColumn:0,
+    pagination: true,
+    perPage:10,
+    pagClosest: 3,
+    globalSearch: true,
+    inputPlaceholder: "Поиск...",
+    paginationClass: 'btn btn-light',
+    sortable: false
+  });
+
+  
   var fActive = '';
  
   function filterGoods(goods){
    if(fActive != goods){
-   $('.wrap_tab_content_filter .divTableRow').filter('.'+goods).fadeIn();
-   $('.wrap_tab_content_filter .divTableRow').filter(':not(.'+goods+')').hide();
+   $('.wrap_tab_content_filter tbody tr').filter('.'+goods).fadeIn();
+   $('.wrap_tab_content_filter tbody tr').filter(':not(.'+goods+')').hide();
    fActive = goods;
    }
   }
@@ -31,7 +46,7 @@ $(document).ready(function() {
     filterGoods(filt);
 
     if(filt == 'all') {
-      $('.wrap_tab_content_filter .divTableRow').fadeIn();
+      $('.wrap_tab_content_filter tr').fadeIn();
     }
     fActive='';
     
@@ -49,7 +64,7 @@ $(document).ready(function() {
     buttonShow(goods);
 
     if(goods == 'all') {
-      $('.wrap_tab_content_filter .divTableRow').fadeIn();
+      $('.wrap_tab_content_filter tr').fadeIn();
     }
 
   });
@@ -141,7 +156,7 @@ $(document).ready(function() {
     })
 
     //message form box 
-    /*$('body').on('submit', '.form', function(evt) {
+    $('body').on('submit', '.form', function(evt) {
       evt.preventDefault();
 
       $('.overlay').fadeIn(297, function(){
@@ -158,7 +173,7 @@ $(document).ready(function() {
         $(this).css('display', 'none');
         $('.overlay').fadeOut(297);
       });
-    });*/
+    });
 
     //add account
     $('#add_acc').click(function(e) {

@@ -174,6 +174,10 @@ input[type="search"] {
   position: relative;
 }
 
+.tooltip img {
+  width: 36px;
+}
+
 .tooltip span {
   opacity: 0;
   position: absolute;
@@ -187,6 +191,10 @@ input[type="search"] {
 .tooltip span.visible {
   opacity: 1;
   display: block;
+}
+
+.tooltip span img {
+  width: 235px;
 }
 
 .spec {
@@ -243,7 +251,7 @@ input[type="search"] {
   margin-top: 15px;
 }
 
-.divTable {
+.divTable, table {
   display: table;
   border-collapse: separate;
   border-spacing: 15px;
@@ -251,11 +259,11 @@ input[type="search"] {
   width: 100%;
 }
 
-.divTable .divTableHeading {
+.divTable .divTableHeading, .divTable thead, table .divTableHeading, table thead {
   display: table-header-group;
 }
 
-.divTable .divTableBody {
+.divTable .divTableBody, .divTable tbody, table .divTableBody, table tbody {
   display: table-row-group;
 }
 
@@ -267,11 +275,12 @@ input[type="search"] {
   display: table-cell;
 }
 
-.divTableRow .divTableHead {
+.divTableRow .divTableHead, .divTableRow th {
   font-size: 14px;
   line-height: 16px;
   padding-bottom: 10px;
   padding-right: 20px;
+  font-weight: normal;
 }
 
 .wrap_calendar .wrapper_tab_content .wrap_tab {
@@ -337,6 +346,35 @@ input[type="search"] {
   color: #14B2F3;
   letter-spacing: 0.175em;
   font-weight: bold;
+}
+
+.fancySearchRow {
+  position: relative;
+}
+
+.fancySearchRow input {
+  margin: 10px 0;
+  max-width: 100%;
+}
+
+tfoot .pag {
+  position: relative;
+}
+
+tfoot .pag .btn.btn-light {
+  background: #f2f3f5;
+  border-color: #ececec;
+  border-radius: 10px;
+}
+
+tfoot .pag .btn.btn-light:not(:disabled):not(.disabled).active {
+  background: #dae0e5;
+  border-color: #dae0e5;
+}
+
+tfoot .pag .btn.btn-light:hover {
+  background: #e2e6ea;
+  border-color: #e2e6ea;
 }
 
 .wrap_slider {
@@ -471,18 +509,19 @@ input[type="search"] {
   display: block;
 }
 
-.wrapper_tab_content .wrap_table .divTable {
+.wrapper_tab_content .wrap_table .divTable, .wrapper_tab_content .wrap_table table {
   margin: 0;
   border-spacing: 0;
   width: 100%;
   margin-top: 25px;
+  margin-bottom: 35px;
 }
 
-.wrapper_tab_content .wrap_table .divTable .divTableBody .divTableRow {
+.wrapper_tab_content .wrap_table .divTable .divTableBody .divTableRow, .wrapper_tab_content .wrap_table .divTable .divTableBody tr, .wrapper_tab_content .wrap_table .divTable tbody .divTableRow, .wrapper_tab_content .wrap_table .divTable tbody tr, .wrapper_tab_content .wrap_table table .divTableBody .divTableRow, .wrapper_tab_content .wrap_table table .divTableBody tr, .wrapper_tab_content .wrap_table table tbody .divTableRow, .wrapper_tab_content .wrap_table table tbody tr {
   position: relative;
 }
 
-.wrapper_tab_content .wrap_table .divTable .divTableBody .divTableRow:after {
+.wrapper_tab_content .wrap_table .divTable .divTableBody .divTableRow:after, .wrapper_tab_content .wrap_table .divTable .divTableBody tr:after, .wrapper_tab_content .wrap_table .divTable tbody .divTableRow:after, .wrapper_tab_content .wrap_table .divTable tbody tr:after, .wrapper_tab_content .wrap_table table .divTableBody .divTableRow:after, .wrapper_tab_content .wrap_table table .divTableBody tr:after, .wrapper_tab_content .wrap_table table tbody .divTableRow:after, .wrapper_tab_content .wrap_table table tbody tr:after {
   content: '';
   position: absolute;
   height: 2px;
@@ -494,18 +533,18 @@ input[type="search"] {
   display: block;
 }
 
-.wrapper_tab_content .wrap_table .divTable .divTableBody .divTableRow .divTableCell {
+.wrapper_tab_content .wrap_table .divTable .divTableBody .divTableRow .divTableCell, .wrapper_tab_content .wrap_table .divTable .divTableBody .divTableRow td, .wrapper_tab_content .wrap_table .divTable .divTableBody tr .divTableCell, .wrapper_tab_content .wrap_table .divTable .divTableBody tr td, .wrapper_tab_content .wrap_table .divTable tbody .divTableRow .divTableCell, .wrapper_tab_content .wrap_table .divTable tbody .divTableRow td, .wrapper_tab_content .wrap_table .divTable tbody tr .divTableCell, .wrapper_tab_content .wrap_table .divTable tbody tr td, .wrapper_tab_content .wrap_table table .divTableBody .divTableRow .divTableCell, .wrapper_tab_content .wrap_table table .divTableBody .divTableRow td, .wrapper_tab_content .wrap_table table .divTableBody tr .divTableCell, .wrapper_tab_content .wrap_table table .divTableBody tr td, .wrapper_tab_content .wrap_table table tbody .divTableRow .divTableCell, .wrapper_tab_content .wrap_table table tbody .divTableRow td, .wrapper_tab_content .wrap_table table tbody tr .divTableCell, .wrapper_tab_content .wrap_table table tbody tr td {
   padding: 25px 0;
   padding-right: 20px;
   vertical-align: middle;
 }
 
-.wrapper_tab_content .wrap_table .divTable .divTableBody .divTableRow .divTableCell.img_icon {
+.wrapper_tab_content .wrap_table .divTable .divTableBody .divTableRow .divTableCell.img_icon, .wrapper_tab_content .wrap_table .divTable .divTableBody .divTableRow td.img_icon, .wrapper_tab_content .wrap_table .divTable .divTableBody tr .divTableCell.img_icon, .wrapper_tab_content .wrap_table .divTable .divTableBody tr td.img_icon, .wrapper_tab_content .wrap_table .divTable tbody .divTableRow .divTableCell.img_icon, .wrapper_tab_content .wrap_table .divTable tbody .divTableRow td.img_icon, .wrapper_tab_content .wrap_table .divTable tbody tr .divTableCell.img_icon, .wrapper_tab_content .wrap_table .divTable tbody tr td.img_icon, .wrapper_tab_content .wrap_table table .divTableBody .divTableRow .divTableCell.img_icon, .wrapper_tab_content .wrap_table table .divTableBody .divTableRow td.img_icon, .wrapper_tab_content .wrap_table table .divTableBody tr .divTableCell.img_icon, .wrapper_tab_content .wrap_table table .divTableBody tr td.img_icon, .wrapper_tab_content .wrap_table table tbody .divTableRow .divTableCell.img_icon, .wrapper_tab_content .wrap_table table tbody .divTableRow td.img_icon, .wrapper_tab_content .wrap_table table tbody tr .divTableCell.img_icon, .wrapper_tab_content .wrap_table table tbody tr td.img_icon {
   font-size: 36px;
   line-height: 36px;
 }
 
-.wrapper_tab_content .wrap_table .divTable .divTableBody .divTableRow .divTableCell.pr {
+.wrapper_tab_content .wrap_table .divTable .divTableBody .divTableRow .divTableCell.pr, .wrapper_tab_content .wrap_table .divTable .divTableBody .divTableRow td.pr, .wrapper_tab_content .wrap_table .divTable .divTableBody tr .divTableCell.pr, .wrapper_tab_content .wrap_table .divTable .divTableBody tr td.pr, .wrapper_tab_content .wrap_table .divTable tbody .divTableRow .divTableCell.pr, .wrapper_tab_content .wrap_table .divTable tbody .divTableRow td.pr, .wrapper_tab_content .wrap_table .divTable tbody tr .divTableCell.pr, .wrapper_tab_content .wrap_table .divTable tbody tr td.pr, .wrapper_tab_content .wrap_table table .divTableBody .divTableRow .divTableCell.pr, .wrapper_tab_content .wrap_table table .divTableBody .divTableRow td.pr, .wrapper_tab_content .wrap_table table .divTableBody tr .divTableCell.pr, .wrapper_tab_content .wrap_table table .divTableBody tr td.pr, .wrapper_tab_content .wrap_table table tbody .divTableRow .divTableCell.pr, .wrapper_tab_content .wrap_table table tbody .divTableRow td.pr, .wrapper_tab_content .wrap_table table tbody tr .divTableCell.pr, .wrapper_tab_content .wrap_table table tbody tr td.pr {
   font-size: 22px;
   line-height: 26px;
 }

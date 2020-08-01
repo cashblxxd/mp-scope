@@ -11,10 +11,34 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/libs.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
 </head>
 
 <body>
-
+    {% if tab == "awaiting_packaging" or tab == "awaiting_deliver" %}
+        <script>
+            function toggle(source) {
+                checkboxes = document.getElementsByName('posting_number');
+                for(var i=0, n=checkboxes.length;i<n;i++) {
+                    checkboxes[i].checked = source.checked;
+                }
+            }
+        </script>
+    {% endif %}
+    <style>
+        .zoom {
+            transition: transform .1s;
+        }
+        {% if tab == "awaiting_packaging" or tab == "awaiting_deliver" %}
+            .zoom:hover {
+                transform: scale(5);
+            }
+        {% else %}
+            .zoom:hover {
+                transform: scale(2);
+            }
+        {% endif %}
+    </style>
     <header>
         <div class="container">
             <div class="top_line clearfix">
@@ -178,7 +202,7 @@
                                                             {% if data == "None" %}
                                                                 <h2>Нет данных для отображения</h2>
                                                             {% else %}
-                                                                <table id="table_id" class="display">
+                                                                <table id="example" class="display" style="width:100%">
                                                                     <thead>
                                                                         <tr>
                                                                             <th data-field="offer_id">Артикул</th>
@@ -195,10 +219,9 @@
                                                                         {% for i in data %}
                                                                             <tr>
                                                                                 <td>{{ i["offer_id"] }}</td>
-                                                                                <td>
-                                                                                    {% for j in i["images"] %}
-                                                                                        <div class="divTableCell img_icon"><a class="tooltip" href="#"><i class="far fa-image"></i><span><img src="{{ j }}" alt="foto"></span></a></div>
-                                                                                    {% endfor %}
+                                                                                <td style="width:250px; height:250px; text-align:center; vertical-align:middle">
+                                                                                    <img src="{{ i["images"][0] }}" class="zoom" style="max-height:100%; max-width:100%"/>
+
                                                                                 </td>
                                                                                 <td>{{ i["name"] }}</td>
                                                                                 <td>{{ d[i["status"]] }}</td>
@@ -248,12 +271,12 @@
                                                             {% if data == "None" %}
                                                                 <h2>Нет данных для отображения</h2>
                                                             {% else %}
-                                                                <table id="table_id" class="display">
+                                                                <table id="example" class="display" style="width:100%">
                                                                     <thead>
                                                                         <tr>
                                                                             {% if tab == "awaiting_packaging" or tab == "awaiting_deliver" %}
                                                                                 <th>
-                                                                                    <input type="checkbox" name="select-all" value="select-all">
+                                                                                    <input type="checkbox" name="select-all" onClick="toggle(this)" value="select-all"/>
                                                                                 </th>
                                                                             {% endif %}
                                                                             <th data-field="date">Дата</th>
@@ -273,17 +296,16 @@
                                                                             <tr>
                                                                                 {% if tab == "awaiting_packaging" or tab == "awaiting_deliver" %}
                                                                                     <td>
-                                                                                        <input type="checkbox" name="posting_number" value="{{ i["posting_number"] }}">
+                                                                                        <input type="checkbox" name="posting_number" value="{{ i["posting_number"] }}"/>
                                                                                     </td>
                                                                                 {% endif %}
                                                                                 <td>{{ i["date"] }}</td>
                                                                                 <td>{{ i["order_number"] }}</td>
                                                                                 <td>{{ i["posting_number"] }}</td>
                                                                                 <td>{{ i["details"] }}</td>
-                                                                                <td>
-                                                                                    {% for j in i["images"] %}
-                                                                                        <div class="divTableCell img_icon"><a class="tooltip" href="#"><i class="far fa-image"></i><span><img src="{{ j }}" alt="foto"></span></a></div>
-                                                                                    {% endfor %}
+                                                                                <td style="width:250px; height:250px; text-align:center; vertical-align:middle">
+                                                                                    <img src="{{ i["images"][0] }}" class="zoom" style="max-height:100%; max-width:100%"/>
+
                                                                                 </td>
                                                                                 <td>{{ i["price"] }}</td>
                                                                                 <td>{{ d[i["status"]] }}</td>
@@ -322,6 +344,13 @@
     </div>
     <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#example').DataTable();
+        } );
+    </script>
     {% if done %}
         <script src="{{ url_for('static', filename='js/notifications.js') }}" type="text/javascript"></script>
         <script>
@@ -337,16 +366,6 @@
                     message: {{ message }}
                 });
             });
-        </script>
-    {% endif %}
-    {% if tab == "awaiting_packaging" or tab == "awaiting_deliver" %}
-        <script>
-            document.getElementById('select-all').onclick = function() {
-                var checkboxes = document.getElementsByName('posting_number');
-                for (var checkbox of checkboxes) {
-                    checkbox.checked = this.checked;
-                }
-            }
         </script>
     {% endif %}
 </body>

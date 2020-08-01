@@ -224,11 +224,19 @@ def dashboard():
                            cur_pos=cur_pos, panel=panel, tab=tab, d=d)
 
 
-"""
-/help
-/tos - Terms of Service
-/forgot
-"""
+@app.route('/help', methods=['GET', 'POST'])
+def help():
+    return "<h1>Здесь будет FAQ</h1>"
+
+
+@app.route('/tos', methods=['GET', 'POST'])
+def tos():
+    return "<h1>Здесь будут правила сервиса</h1>"
+
+
+@app.route('/mail', methods=['GET', 'POST'])
+def mail():
+    return "<h1>Здесь будет почта</h1>"
 
 
 @app.route('/settings', methods=['GET', 'POST'])
