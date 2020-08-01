@@ -10,3 +10,4 @@ pymongo
 rq
 dnspython
 mongo-queue-service
+py3-validate-email

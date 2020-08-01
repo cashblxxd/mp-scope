@@ -5,18 +5,104 @@ from mongo_queue.queue import Queue
 import string
 import random
 import gridfs
+import datetime
+from bson.objectid import ObjectId
 
 
-def user_exist(username, password, client):
-    data = client.users.usernames.find_one({
-        'username': username,
-        'password': password
+def user_exist(email, password, client):
+    data = client.userdata.users.find_one({
+        "email": email,
+        "password": password
+    })
+    pprint(data)
+    if data is None:
+        return False, {}
+    return True, {
+        "email": data["email"],
+        "accounts_token": data["accounts_token"]
+    }
+
+
+def user_create(email, password, client):
+    accounts_token = secrets.token_urlsafe()
+    client.userdata.users.insert_one({
+        "email": email,
+        "password": password,
+        "accounts_token": accounts_token
+    })
+    client.userdata.accounts.insert_one({
+        "token": accounts_token,
+        "order": [],
+        "data": {}
+    })
+    return True, {
+        "email": email,
+        "accounts_token": accounts_token
+    }
+
+
+def change_password(email, old_password, new_password, client):
+    client.userdata.users.update_one({
+        "email": email,
+        "password": old_password
+    }, {"$set": {
+        "password": new_password
+    }})
+
+
+def reset_password(email, new_password, client):
+    client.userdata.users.update_one({
+        "email": email
+    }, {"$set": {
+        "password": new_password
+    }})
+
+
+def email_taken(email, client):
+    return not (client.userdata.users.find_one({
+        'email': email,
+    }) is None)
+
+
+def put_confirmation_token(email, password, client):
+    confirmation_token = secrets.token_urlsafe()
+    client.userdata.confirmation_tokens.insert_one({
+        "token": confirmation_token,
+        "email": email,
+        "password": password
+    })
+    return confirmation_token
+
+
+def get_confirmation_token(token, client):
+    data = client.userdata.confirmation_tokens.find_one({
+        "token": token
     })
     if data is None:
-        return (False,)
-    data.pop("_id")
-    data.pop("password")
-    return True, data
+        return False, "Not found"
+    email, password = data["email"], data["password"]
+    client.userdata.confirmation_tokens.delete_one(data)
+    return True, (email, password)
+
+
+def put_reset_token(email, client):
+    reset_token = secrets.token_urlsafe()
+    client.userdata.confirmation_tokens.insert_one({
+        "token": reset_token,
+        "email": email
+    })
+    return reset_token
+
+
+def get_reset_token(token, client):
+    data = client.userdata.confirmation_tokens.find_one({
+        "token": token
+    })
+    if data is None:
+        return False, "Not found"
+    email = data["email"]
+    client.userdata.confirmation_tokens.delete_one(data)
+    return True, email
 
 
 def clear_queue(client):
@@ -28,23 +114,114 @@ def clear_queue(client):
 #clear_queue()
 
 
+def account_exist_name_apikey_client_id(name, apikey, client_id, token, client):
+    data = client.userdata.accounts.find_one({
+        "token": token
+    })
+    if data is None:
+        return False, "Not found"
+    if name in data["order"]:
+        return False, "name"
+    for i in data["data"]:
+        if apikey == data["data"][i]["apikey"]:
+            return False, "apikey"
+        elif client_id == data["data"][i]["client_id"]:
+            return False, "client_id"
+    return True, ""
+
+
+def add_account(uid, name, apikey, client_id, token, client):
+    data = client.userdata.accounts.find_one({
+        "token": token
+    })
+    if data is None:
+        return False, "Not found"
+    data["order"].append(name)
+    data["data"][name] = {
+        "apikey": apikey,
+        "client_id": client_id
+    }
+    mongosession = client.sessions_data.sessions_active.find_one({
+        "uid": uid
+    })
+    if mongosession is None:
+        pass
+    else:
+        mongosession["order"].append(name)
+        mongosession["data"][name] = {
+            "apikey": apikey,
+            "client_id": client_id
+        }
+        client.sessions_data.sessions_active.update_one({
+            "uid": uid
+        }, {"$set": mongosession})
+    client.userdata.accounts.update_one({
+        "token": token
+    }, {"$set": data})
+
+
+def delete_account_from_session(uid, pos, client):
+    mongosession = client.sessions_data.sessions_active.find_one({
+        "uid": uid
+    })
+    if mongosession is None:
+        return False, "Not found"
+    acc_name = mongosession["order"][pos]
+    mongosession["order"].pop(pos)
+    mongosession["data"].pop(acc_name)
+    mongosession["done"] = "account_deleted"
+    client.sessions_data.sessions_active.update_one({
+        "uid": uid
+    }, {"$set": mongosession})
+
+
+def delete_account_from_db(token, pos, client):
+    accounts = client.userdata.accounts.find_one({
+        "token": token
+    })
+    if accounts is None:
+        return False, "Not found"
+    acc_name = accounts["order"][pos]
+    accounts["order"].pop(pos)
+    accounts["data"].pop(acc_name)
+    client.userdata.accounts.update_one({
+        "token": token
+    }, {"$set": accounts})
+    return True, ""
+
+
+def init_session(uid, email, accounts_token, client):
+    delete_session(uid, client)
+    accounts = client.userdata.accounts.find_one({
+        "token": accounts_token
+    })
+    if not accounts:
+        client.userdata.accounts.insert_one({
+            "token": accounts_token,
+            "order": [],
+            "data": {}
+        })
+        accounts = {
+            "order": [],
+            "data": {}
+        }
+    client.sessions_data.sessions_active.insert_one({
+        "uid": uid,
+        "email_show": email.split("@")[0],
+        "email": email,
+        "accounts_token": accounts_token,
+        "cur_pos": 0,
+        "panel": "dashboard",
+        "tab": "postings_all",
+        "order": accounts["order"],
+        "data": accounts["data"],
+        "done": ""
+    })
+
+
 def get_session(uid, client):
     return client.sessions_data.sessions_active.find_one({
         "uid": uid
-    })
-
-
-def init_session(uid, client):
-    client.sessions_data.sessions_active.delete_one({
-        "uid": uid
-    })
-    client.sessions_data.sessions_active.insert_one({
-        "uid": uid,
-        "users": {},
-        "order": [],
-        "cur_pos": 1,
-        "active": "dashboard",
-        "tab": "items_all"
     })
 
 
@@ -64,6 +241,7 @@ def mark_pending(job_id, client):
     client.update_queue_db.job_ids.insert_one({
         "job_id": job_id
     })
+    print("inserted")
 
 
 def mark_done(job_id, client):
@@ -78,178 +256,146 @@ def check_job(job_id, client):
     }) is None
 
 
-def get_items(api_key, client_id, client):
-    return client.ozon_data.items.find_one({
+def get_items(api_key, client_id, client, type="items_all"):
+    q = {
         "creds": f"{api_key}:{client_id}"
-    })
+    }
+    if type != "items_all":
+        q["status"] = type.upper()
+    return client.ozon_data.items_pool.find(q).sort('date', -1)
 
 
-def get_postings(api_key, client_id, client):
-    return client.ozon_data.postings.find_one({
+def get_postings(api_key, client_id, client, type="postings_all"):
+    q = {
         "creds": f"{api_key}:{client_id}"
-    })
-
-
-#mark_done("job1234")
+    }
+    if type != "postings_all":
+        q["status"] = type
+    return client.ozon_data.postings_pool.find(q).sort('date', -1)
 
 
 def save_file(api_key, client_id, name, content, client):
     fs = gridfs.GridFS(client.files)
     file_id = fs.put(content, filename=name)
-    data = client.user_files_list.user_files_list.find_one({
-        "creds": f"{api_key}:{client_id}"
+    client.user_files_list.user_files_list.insert_one({
+        "creds": f"{api_key}:{client_id}",
+        "file_id": file_id,
+        "date": datetime.datetime.now(),
+        "name": name
     })
-    if data is None:
-        data = {
-            "creds": f"{api_key}:{client_id}",
-            "data": {},
-        }
-    data["data"][name] = {
-        "file_id": file_id
-    }
-    if "_id" in data:
-        client.user_files_list.user_files_list.update_one({
-            "_id": data["_id"]
-        }, {"$set": data})
-    else:
-        client.user_files_list.user_files_list.insert_one(data)
 
 
 def get_files_list(api_key, client_id, client):
-    data = client.user_files_list.user_files_list.find_one({
+    return client.user_files_list.user_files_list.find({
         "creds": f"{api_key}:{client_id}"
-    })
-    if data is None:
-        return {}
-    return data["data"]
+    }).sort("date", -1)
 
 
 def get_file(f_id, client):
-    fs = gridfs.GridFS(client.files)
-    return fs.get(f_id).read()
+    data = client.files.fs.chunks.find_one({
+        "files_id": ObjectId(f_id)
+    })
+    if data is None:
+        return None
+    return data["data"]
 
 
-def delete_file(api_key, client_id, filename, client):
+def delete_file(api_key, client_id, f_id, client):
     data = client.user_files_list.user_files_list.find_one({
-        "creds": f"{api_key}:{client_id}"
+        "creds": f"{api_key}:{client_id}",
+        "file_id": ObjectId(f_id)
     })
     if data is None:
         return
-    pprint(data)
-    delete_file_gridfs(data["data"][filename]["file_id"], client)
-    data["data"].pop(filename, 0)
-    client.user_files_list.user_files_list.update_one({
-        "_id": data["_id"]
-    }, {"$set": data})
+    delete_file_gridfs(f_id, client)
+    client.user_files_list.user_files_list.delete_one(data)
 
 
 def delete_file_gridfs(f_id, client):
-    fs = gridfs.GridFS(client.files)
-    fs.delete(f_id)
+    client.files.fs.chunks.delete_one({
+        "file_id": ObjectId(f_id)
+    })
+
+
+def check_job_not_exist(api_key, client_id, channel, client, type=None):
+    q = {
+        "api_key": api_key,
+        "client_id": client_id,
+        "channel": channel
+    }
+    if type:
+        q["type"] = type
+    data = client.update_queue_db.update_queue.find_one(q)
+    return data is None or data["attempts"] > 1
 
 
 def insert_deliver_job(api_key, client_id, posting_numbers, job_id, client):
-    queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
-    queue.put({"api_key": api_key, "client_id": client_id, "posting_numbers": posting_numbers,  "job_id": job_id}, channel="deliver_queue")
-    mark_pending(job_id, client)
+    if check_job_not_exist(api_key, client_id, "deliver_queue", client):
+        queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
+        queue.put({"api_key": api_key, "client_id": client_id, "posting_numbers": posting_numbers,  "job_id": job_id}, channel="deliver_queue")
+        mark_pending(job_id, client)
 
 
 def insert_items_update_job(api_key, client_id, job_id, client):
-    queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
-    queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id}, channel="items_priority")
-    mark_pending(job_id, client)
+    if check_job_not_exist(api_key, client_id, "items_priority", client):
+        queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
+        queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id}, channel="items_priority")
+        mark_pending(job_id, client)
 
 
 def insert_items_regular_update(api_key, client_id, job_id, client):
-    queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
-    queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id}, channel="items_queue")
-    mark_pending(job_id, client)
+    if check_job_not_exist(api_key, client_id, "items_priority", client) and check_job_not_exist(api_key, client_id, "items_queue", client):
+        queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
+        queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id}, channel="items_queue")
+        mark_pending(job_id, client)
+
+
+def insert_postings_new_update_job(api_key, client_id, job_id, client):
+    if check_job_not_exist(api_key, client_id, "postings_priority", client, type="new"):
+        queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
+        queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id, "type": "new"}, channel="postings_priority")
+        mark_pending(job_id, client)
+
+
+def insert_postings_status_update_job(api_key, client_id, job_id, client):
+    if check_job_not_exist(api_key, client_id, "postings_priority", client, type="status"):
+        queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
+        queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id, "type": "status"}, channel="postings_priority")
+        mark_pending(job_id, client)
 
 
 def insert_postings_update_job(api_key, client_id, job_id, client):
-    queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
-    queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id}, channel="postings_priority")
-    mark_pending(job_id, client)
-    print("INSERTED")
+    if check_job_not_exist(api_key, client_id, "postings_priority", client):
+        queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
+        queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id}, channel="postings_priority")
+        print("put")
+        pprint({"api_key": api_key, "client_id": client_id, "job_id": job_id})
+        mark_pending(job_id, client)
+        print("INSERTED")
 
 
 def insert_postings_regular_update(api_key, client_id, job_id, client):
-    queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
-    queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id}, channel="postings_queue")
-    mark_pending(job_id, client)
+    if check_job_not_exist(api_key, client_id, "postings_priority", client) and check_job_not_exist(api_key, client_id, "postings_queue", client):
+        queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
+        queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id}, channel="postings_queue")
+        mark_pending(job_id, client)
 
 
 def insert_act_job(api_key, client_id, job_id, client):
-    queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
-    queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id}, channel="act_queue")
-    mark_pending(job_id, client)
+    if check_job_not_exist(api_key, client_id, "act_queue", client):
+        queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
+        queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id}, channel="act_queue")
+        mark_pending(job_id, client)
 
 
 def insert_labels_upload_job(api_key, client_id, posting_numbers, job_id, client):
-    queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
-    queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id, "posting_numbers": posting_numbers}, channel="labels_queue")
-    mark_pending(job_id, client)
-
-
-def get_items_ids(api_key, client_id, client, status="all"):
-    data = client.ozon_data.items.find_one({
-        "creds": f"{api_key}:{client_id}"
+    data = client.update_queue_db.update_queue.find_one({
+        "api_key": api_key,
+        "client_id": client_id,
+        "posting_numbers": posting_numbers,
+        "channel": "labels_queue"
     })
-    if data is None:
-        return None
-    return data["ids"][status]
-
-
-def get_postings_ids(api_key, client_id, client, status="all"):
-    data = client.ozon_data.postings.find_one({
-        "creds": f"{api_key}:{client_id}"
-    })
-    if data is None:
-        return None
-    return data["order_ids"][status]
-
-
-def user_create(username, password, client):
-    data = {
-        'username': username,
-        'password': password,
-        "ozon_apikey": "",
-        "client_id": ""
-    }
-    client.users.usernames.insert_one(data)
-    data.pop("_id")
-    data.pop("password")
-    return True, data
-
-
-def username_taken(username, client):
-    return not (client.users.usernames.find_one({
-        'username': username,
-    }) is None)
-
-
-def get_data(username, client):
-    return not (client.users.user_data.find_one({
-        'username': username
-    }) is None)
-
-
-def put_confirmation_token(username, password, client):
-    token = secrets.token_urlsafe()
-    client.users.confirmation_tokens.insert_one({
-        'token': token,
-        'username': username,
-        'password': password
-    })
-    return token
-
-
-def get_confirmation_token(token, client):
-    data = client.users.confirmation_tokens.find_one({
-        'token': token
-    })
-    if data is None:
-        return False, 'Not found'
-    username, password = data["username"], data["password"]
-    client.users.confirmation_tokens.delete_one(data)
-    return True, (username, password)
+    if data is None or data["attempts"] > 1:
+        queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
+        queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id, "posting_numbers": posting_numbers}, channel="labels_queue")
+        mark_pending(job_id, client)

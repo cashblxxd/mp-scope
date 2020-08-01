@@ -136,16 +136,56 @@ def get_item_info(product_id, offer_id, shop_api_key, client_id):
         "Размер НДС, %": {"": "0", "0.000000": "0", "0.100000": "10%", "0.200000": "20%", }[str(r.get("vat", "0"))]'''
     """
     result = {
-        "Артикул": offer_id,
-        "Баркод": r["barcode"],
-        "Наименование": r["name"],
-        "Статус": get_item_state(r.get("state", "-")),
-        "Картинка": r["images"],
-        "Видимость на сайте": "да" if r.get("visible", 0) else "нет",
-        "Доступно на складе, шт": r.get("stocks", {}).get("present", "-"),
-        "Текущая цена с учетом скидки, руб": r.get("price", "-")
+        "offer_id": offer_id,
+        "images": r["images"],
+        "name": r["name"],
+        "visibility": "Показывается" if r.get("visible", 0) else "Не показывается",
+        "fbs_stock": r.get("stocks", {}).get("present", "0"),
+        "price": r.get("marketing_price", "-"),
+        "price_actual": "-",
+        "creds": f"{shop_api_key}:{client_id}",
+        "product_id": product_id,
+        "date": r.get("created_at", datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'))
     }
+    try:
+        price = float(result["price"])
+        price -= max(0.15 * price, 150)
+        price -= 75
+        result["price_actual"] = str(price)
+    except Exception:
+        pass
     return result
+
+
+def get_new_postings_list(apikey, client_id, since=None):
+    print("since.......................", since)
+    headers = {
+        'Client-Id': str(client_id),
+        'Api-Key': apikey,
+        'Content-Type': 'application/json'
+    }
+    payload = {
+        "dir": "desc",
+        "filter": {},
+        "limit": 50,
+        "offset": 0,
+        "with": {
+            "barcodes": False
+        }
+    }
+    if not (since is None):
+        payload["filter"]["since"] = since.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + "Z"
+    pprint(payload)
+    r = requests.post(url="http://api-seller.ozon.ru/v2/posting/fbs/list", headers=headers, json=payload).json()
+    pprint(r)
+    r = r["result"]
+    postings = []
+    while r:
+        postings.extend(r)
+        payload["offset"] += 50
+        r = requests.post(url="http://api-seller.ozon.ru/v2/posting/fbs/list", headers=headers, json=payload).json()["result"]
+    return postings
+
 
 
 def get_postings_list(shop_api_key, client_id, status=None, since=(datetime.now() + dateutil.relativedelta.relativedelta(months=-1)).replace(day=1)):
@@ -216,6 +256,18 @@ def get_product_image(sku, shop_api_key, client_id):
         return "https://image.flaticon.com/icons/png/512/1602/1602620.png"
 
 
+def get_posting_status_update(apikey, client_id, posting_number):  # posting_number
+    headers = {
+        'Client-Id': str(client_id),
+        'Api-Key': apikey,
+        'Content-Type': 'application/json'
+    }
+    payload = {
+        "posting_number": posting_number,
+    }
+    return requests.post(url="http://api-seller.ozon.ru/v2/posting/fbs/get", headers=headers, json=payload).json()["result"]["status"]
+
+
 def get_prices_sum(products):
     summ = 0
     for product in products:
@@ -228,17 +280,16 @@ def get_prices_sum(products):
 def get_posting_info(r, shop_api_key, client_id):
     products = r.get("products", [{}])
     result = {
-        "Принят в обработку": parse_date_short(r.get("in_process_at", "-")),
-        "Номер заказа": r.get("order_number", "-"),
-        "Номер отправления": r.get("posting_number", "-"),
-        "Детали отправления": get_details(products),
-        "Картинка": [get_product_image(products[i].get("sku", "-"), shop_api_key, client_id)
+        "creds": f"{shop_api_key}:{client_id}",
+        "date": r.get("in_process_at", "-"),
+        "order_number": r.get("order_number", "-"),
+        "posting_number": r.get("posting_number", "-"),
+        "details": get_details(products),
+        "images": [get_product_image(products[i].get("sku", "-"), shop_api_key, client_id)
                      for i in range(len(products))],
-        "Стоимость": get_prices_sum(products),
-        # Стоимость !!!!!!!!!!!!!!!!!!
-        "Дата отгрузки": parse_date_short(r.get("shipment_date", "-")),
+        "price": get_prices_sum(products),
+        "status": r["status"],
         "metadata": {
-            "status": r["status"],
             "products": [{
                 "quantity": i["quantity"],
                 "sku": i["sku"],
@@ -247,6 +298,11 @@ def get_posting_info(r, shop_api_key, client_id):
     }
     return result
 
+
+'''# Стоимость !!!!!!!!!!!!!!!!!!
+        "Дата отгрузки": parse_date_short(r.get("shipment_date", "-")),
+        
+        '''
 
 # datetime.strptime(i["Принят в обработку"], '%d-%m-%Y %H:%M:%S') >= ((datetime.now() + dateutil.relativedelta.relativedelta(months=-1)).replace(day=1)) and i["Номер отправления"] in actual_posting_numbers
 
@@ -336,3 +392,6 @@ def get_labels(api_key, client_id, posting_numbers):
         content = f.read()
     os.remove(name)
     return name, content
+
+
+#print(get_posting_status_update("68349970-1c11-412a-a3f6-19ac61b94210", "33345", "32532022-0046-1"))

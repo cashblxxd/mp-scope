@@ -5,7 +5,8 @@ from mongo_queue.queue import Queue
 import time
 import datetime
 import dateutil.relativedelta
-from ozon_api import get_postings_list, get_posting_info, get_items_ids, get_item_info, print_acts, get_item_state_rev, get_labels
+from ozon_api import get_postings_list, get_posting_info, get_items_ids, get_item_info, print_acts, get_item_state_rev,\
+     get_labels, get_new_postings_list, get_posting_status_update
 import random
 import string
 from mongo import mark_done, get_files_list, get_file, save_file
@@ -15,65 +16,129 @@ import traceback
 from collections import OrderedDict
 
 
-def update_postings(api_key, client_id, client, last_updated=None):
-    data = client.ozon_data.postings.find_one({
-        "creds": f"{api_key}:{client_id}"
+def load_new_postings(apikey, client_id, data, client):
+    if data["last_updated"] is None:
+        neww = get_new_postings_list(apikey, client_id)
+    else:
+        neww = get_new_postings_list(apikey, client_id, data["last_updated"] + dateutil.relativedelta.relativedelta(days=-1))
+    data["last_updated"] = datetime.datetime.now()
+    for i in neww:
+        k = get_posting_info(i, apikey, client_id)
+        client.ozon_data.postings_pool.update_one({
+            "posting_number": i["posting_number"]
+        }, {"$set": k}, upsert=True)
+
+
+def load_new_postings_job(apikey, client_id, client):
+    data = client.ozon_data.postings_ids.find_one({
+        "creds": f"{apikey}:{client_id}"
     })
     if data is None:
         data = {
-            "creds": f"{api_key}:{client_id}",
-            "last_updated": datetime.datetime.now(),
-            "data": OrderedDict(),
-            "order_ids": {
-                "awaiting_packaging": [],
-                "not_accepted": [],
-                "arbitration": [],
-                "awaiting_deliver": [],
-                "delivering": [],
-                "driver_pickup": [],
-                "delivered": [],
-                "cancelled": []
-            }
+            "creds": f"{apikey}:{client_id}",
+            "last_updated": None
         }
-        if last_updated is None:
-            last_updated = ((datetime.datetime.now() + dateutil.relativedelta.relativedelta(months=-1)).replace(day=1))
-    else:
-        if last_updated is None:
-            last_updated = data["last_updated"] + dateutil.relativedelta.relativedelta(hours=-2)
-    print(last_updated)
-    for i in data["order_ids"]:
-        data["order_ids"][i] = set(data["order_ids"][i])
-    neww = get_postings_list(api_key, client_id, status="ALL", since=last_updated)
-    postings_add = {}
-    for i in neww:
-        if i["posting_number"] not in data:
-            print("...", i["posting_number"])
-            k = get_posting_info(i, api_key, client_id)
-            postings_add[i["posting_number"]] = k
-            data["order_ids"][k["metadata"]["status"]].add(i["posting_number"])
-        elif data[i["posting_number"]]["metadata"]["status"] != i["status"]:
-            print("---", i["posting_number"])
-            data["order_ids"][data[i["posting_number"]]["metadata"]["status"]].pop(i["posting_number"], 0)
-            data[i["posting_number"]]["metadata"]["status"] = i["status"]
-            data["order_ids"][data[i["posting_number"]]["metadata"]["status"]].add(i["posting_number"])
-    print("done, dumping.")
-    data["data"].update(postings_add)
-    for i in data["order_ids"]:
-        print("...", i)
-        data["order_ids"][i] = list(data["order_ids"][i])
-    print("uploading...")
+    load_new_postings(apikey, client_id, data, client)
     if "_id" in data:
         print(1)
-        client.ozon_data.postings.update_one({
+        client.ozon_data.postings_ids.update_one({
             "_id": data["_id"]
         }, {"$set": data})
         print("done 1")
     else:
         print(2)
-        client.ozon_data.postings.insert_one(data)
+        client.ozon_data.postings_ids.insert_one(data)
         print("done 2")
 
 
+def update_postings_status(apikey, client_id, timedelta, client):
+    '''
+    pprint({
+        "creds": f"{apikey}:{client_id}",
+        "date": {
+            "$gte": datetime.datetime.now() + {
+                "2h": dateutil.relativedelta.relativedelta(hours=-2),
+                "6h": dateutil.relativedelta.relativedelta(hours=-6),
+                "2d": dateutil.relativedelta.relativedelta(days=-2),
+                "1w": dateutil.relativedelta.relativedelta(weeks=-1),
+                "2w": dateutil.relativedelta.relativedelta(weeks=-2),
+                "1m": dateutil.relativedelta.relativedelta(months=-1),
+                "2m": dateutil.relativedelta.relativedelta(months=-2),
+            }[timedelta]
+        },
+        "status": {
+            "$ne": "delivered"
+        }
+    })
+    '''
+    data = client.ozon_data.postings_pool.find({
+        "creds": f"{apikey}:{client_id}",
+        "status": {
+            "$ne": "delivered"
+        }
+    })
+    print(data.count())
+    new_data = []
+    for i in data:
+        if i["status"] != "delivered":
+            print("updating ...", i["posting_number"])
+            k = get_posting_status_update(apikey, client_id, i["posting_number"])
+            if i["posting_number"] == "32532022-0046-1":
+                print(k)
+            i["status"] = k
+            new_data.append(i)
+    for i in new_data:
+        client.ozon_data.postings_pool.update_one({
+            "posting_number": i["posting_number"]
+        }, {"$set": i}, upsert=True)
+
+
+'''
+def update_postings(apikey, client_id, client, timedelta="1d"):
+    data = client.ozon_data.postings_ids.find_one({
+        "creds": f"{apikey}:{client_id}"
+    })
+    if data is None:
+        data = {
+            "creds": f"{apikey}:{client_id}",
+            "last_updated": None,
+        }
+            # last_updated = ((datetime.datetime.now() + dateutil.relativedelta.relativedelta(months=-1)).replace(day=1))
+            # last_updated = data["last_updated"] + dateutil.relativedelta.relativedelta(hours=-2)
+    was_not_empty = data["order_ids"]["all"]
+    data = load_new_postings(apikey, client_id, data, client)
+    if "_id" in data:
+        print(1)
+        client.ozon_data.postings_ids.update_one({
+            "_id": data["_id"]
+        }, {"$set": data})
+        print("done 1")
+    else:
+        print(2)
+        client.ozon_data.postings_ids.insert_one(data)
+        print("done 2")
+    if was_not_empty:
+        update_postings_status(apikey, client_id, timedelta, client)
+'''
+
+
+def load_new_items(apikey, client_id, client):
+    for i in {
+        "VISIBLE": [],
+        "INVISIBLE": [],
+        "EMPTY_STOCK": [],
+        "READY_TO_SUPPLY": [],
+        "STATE_FAILED": []
+    }:
+        for j in get_items_ids(apikey, client_id, i):
+            k = get_item_info(j["product_id"], j["offer_id"], apikey, client_id)
+            k["status"] = i
+            client.ozon_data.items_pool.update_one({
+                "id": f'{j["product_id"]}:{j["offer_id"]}'
+            }, {"$set": k}, upsert=True)
+
+
+'''
 def update_items(api_key, client_id, client):
     data = client.ozon_data.items.find_one({
         "creds": f"{api_key}:{client_id}"
@@ -92,29 +157,29 @@ def update_items(api_key, client_id, client):
                 "failed": []
             }
         }
-    for i in data["ids"]:
-        data["ids"][i] = set(data["ids"][i])
     #pprint(data)
     print("the data current")
     neww = get_items_ids(api_key, client_id)
     #pprint(neww)
     print("got", len(neww))
     items_add = OrderedDict()
+    ids_add = {
+        "all": [],
+        "processing": [],
+        "moderating": [],
+        "processed": [],
+        "failed_moderation": [],
+        "failed_validation": [],
+        "failed": []
+    }
     for i in neww:
         print("...", f'{i["product_id"]}:{i["offer_id"]}')
         x_id = f'{i["product_id"]}:{i["offer_id"]}'
         k = get_item_info(i["product_id"], i["offer_id"], api_key, client_id)
-        if x_id not in data["ids"]:
-            data["ids"]["all"].add(x_id)
-            items_add[x_id] = k
-            data["ids"][get_item_state_rev(k["Статус"])].add(x_id)
-        elif data["data"][x_id]["Статус"] != k["Статус"]:
-            old_state, new_state = get_item_state_rev(data["data"][x_id]["Статус"]), get_item_state_rev(k["Статус"])
-            data["ids"][old_state].pop(x_id, 0)
-            data["ids"][new_state].add(x_id)
-    data["data"].update(items_add)
+        data["data"][x_id] = k
+        ids_add[get_item_state_rev(k["Статус"])].append(x_id)
     for i in data["ids"]:
-        data["ids"][i] = list(data["ids"][i])
+        data["ids"][i] = ids_add[i] + data["ids"][i]
     print("collected", len(data["data"]))
     if "_id" in data:
         client.ozon_data.items.update_one({
@@ -123,19 +188,17 @@ def update_items(api_key, client_id, client):
     else:
         client.ozon_data.items.insert_one(data)
     print("updated!")
+'''
 
 
 def deliver_postings(api_key, client_id, postings_numbers, client):
-    data = client.ozon_data.postings.find_one({
-        "creds": f"{api_key}:{client_id}"
-    })
-    if data is None:
-        return False, "404"
     postings = []
     print(postings_numbers)
     for i in postings_numbers:
-        info = data["data"].get(i, 0)
-        if info == 0:
+        data = client.ozon_data.postings_pool.find_one({
+            "posting_number": i
+        })
+        if data is None:
             continue
         headers = {
             'Client-Id': str(client_id),
@@ -143,7 +206,7 @@ def deliver_postings(api_key, client_id, postings_numbers, client):
             'Content-Type': 'application/json'
         }
         payload = {
-            "packages": [{"items": info["metadata"]["products"]}],
+            "packages": [{"items": data["metadata"]["products"]}],
             "posting_number": i
         }
         r = requests.post(url="http://api-seller.ozon.ru/v2/posting/fbs/ship", headers=headers, json=payload).json()
@@ -151,17 +214,10 @@ def deliver_postings(api_key, client_id, postings_numbers, client):
         if "result" in r:
             print("inserting...")
             postings.append(i)
-            data["data"][i]["metadata"]["status"] = "awaiting_deliver"
-            try:
-                data["order_ids"]["awaiting_packaging"].remove(i)
-            except Exception:
-                pass
-            data["order_ids"]["awaiting_deliver"] = [i] + data["order_ids"]["awaiting_deliver"]
-    print(postings)
-    print("updating...", postings)
-    client.ozon_data.postings.update_one({
-        "_id": data["_id"]
-    }, {"$set": data})
+            data["status"] = "awaiting_deliver"
+        client.ozon_data.postings_pool.update_one({
+            "_id": data["_id"]
+        }, {"$set": data})
     return True,
 
 '''
@@ -201,10 +257,13 @@ def work(channel="postings_priority"):
                 pprint(job_data)
                 try:
                     if channel.startswith("postings"):
-                        update_postings(job_data["api_key"], job_data["client_id"], client)
+                        if job_data["type"] == "new":
+                            load_new_postings_job(job_data["api_key"], job_data["client_id"], client)
+                        elif job_data["type"] == "status":
+                            update_postings_status(job_data["api_key"], job_data["client_id"], "1m", client)
                     elif channel.startswith("items"):
                         #print("gotta update items")
-                        update_items(job_data["api_key"], job_data["client_id"], client)
+                        load_new_items(job_data["api_key"], job_data["client_id"], client)
                     elif channel.startswith("act"):
                         upload_act_file(job_data["api_key"], job_data["client_id"], client)
                     elif channel.startswith("labels"):
