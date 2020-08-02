@@ -8,13 +8,15 @@
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon/favicon.png') }}">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/libs.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/libs.min.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}"/>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css"/>
 </head>
 
 <body>
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
     {% if tab == "awaiting_packaging" or tab == "awaiting_deliver" %}
         <script>
             function toggle(source) {
@@ -123,7 +125,7 @@
                                                 <a class="money" href="/dashboard?u={{ i }}&panel=money">Бабло</a>
                                             </li>
                                             <li {% if panel == "settings" %} class="active" {% endif %}>
-                                                <a class="set" href="/dashboard?u={{ i }}&panel=settings">Настройки</a>
+                                                <a class="set" href="/settings">Настройки</a>
                                             </li>
                                         </ul>
                                     </li>
@@ -346,8 +348,6 @@
     </div>
     <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
-    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
     <script>
         $(document).ready(function() {
             $('#example').DataTable();
