@@ -44,7 +44,7 @@ def dashboard():
     ''' elif update == "postings_new":
             pos = request.args.get("pos", "None")
             if pos.isdigit() and int(pos) < len(accounts):
-                account = accounts_data[mongosession["order"][int(pos)]]
+                account = accounts_data[accounts[int(pos)]]
                 if not check_job_not_exist(account["apikey"], account["client_id"], "postings_priority", mgclient, type="status"):
                     mongosession["done"] = "postings_update_inprogress"
                 else:
@@ -279,6 +279,7 @@ def settings():
                 elif data == "client_id":
                     return redirect("/settings?action=done&done=client_id_taken")
     action = request.args.get("action", "None")
+    accounts, accounts_data = get_accounts_order_data(mongosession["accounts_token"], mgclient)
     if action == "done":
         done = request.args.get("done", "None")
         if done in {"bad_old_password", "bad_new_password", "passwords_nomatch", "password_success", "name_taken",
@@ -290,7 +291,7 @@ def settings():
         pos = request.args.get("u", "None")
         if pos.isdigit():
             pos = int(pos)
-            if pos < len(mongosession["order"]):
+            if pos < len(accounts):
                 delete_account_from_db(mongosession["accounts_token"], pos, mgclient)
                 return redirect("/settings")
     if mongosession["done"] in {"bad_old_password", "bad_new_password", "passwords_nomatch", "password_success", "name_taken",
@@ -319,8 +320,8 @@ def settings():
         }[mongosession["done"]]
         mongosession["done"] = ""
         modify_session(session["uid"], mongosession, mgclient)
-        return render_template("settings.html", email_show=mongosession["email_show"], email=mongosession["email"], accounts=mongosession["order"], account_data=mongosession["data"], done=True, theme_select=theme, title_select=title)
-    return render_template("settings.html", email_show=mongosession["email_show"], email=mongosession["email"], accounts=mongosession["order"], account_data=mongosession["data"])
+        return render_template("settings.html", email_show=mongosession["email_show"], email=mongosession["email"], accounts=accounts, account_data=accounts_data, done=True, theme_select=theme, title_select=title)
+    return render_template("settings.html", email_show=mongosession["email_show"], email=mongosession["email"], accounts=accounts, account_data=accounts_data)
 
 
 '''
