@@ -1,18 +1,4 @@
 $(document).ready(function() {
-
-  //pagination and search table  
-
-  $('.bootstrap-table').fancyTable({
-    sortColumn:0,
-    pagination: true,
-    perPage:10,
-    pagClosest: 3,
-    globalSearch: true,
-    inputPlaceholder: "Поиск...",
-    paginationClass: 'btn btn-light',
-    sortable: false
-  });
-
   
   var fActive = '';
  

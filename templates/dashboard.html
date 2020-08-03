@@ -15,9 +15,10 @@
 </head>
 
 <body>
-    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+    
     <script src="{{ url_for('static', filename='js/libs.min.js') }}"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
     {% if tab == "awaiting_packaging" or tab == "awaiting_deliver" %}
         <script>
             function toggle(source) {
@@ -204,7 +205,7 @@
                                                             {% if data == "None" %}
                                                                 <h2>Нет данных для отображения</h2>
                                                             {% else %}
-                                                                <table id="example" class="display" style="width:100%">
+                                                                <table id="datatable-mpscop" class="display" style="width:100%">
                                                                     <thead>
                                                                         <tr>
                                                                             <th data-field="offer_id">Артикул</th>
@@ -274,7 +275,7 @@
                                                             {% if data == "None" %}
                                                                 <h2>Нет данных для отображения</h2>
                                                             {% else %}
-                                                                <table id="example" class="display" style="width:100%">
+                                                                <table id="datatable-mpscop" class="display" style="width:100%">
                                                                     <thead>
                                                                         <tr>
                                                                             {% if tab == "awaiting_packaging" or tab == "awaiting_deliver" %}
@@ -348,11 +349,9 @@
             </div>
         </div>
     </div>
-    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
     <script>
         $(document).ready(function() {
-            $('#example').DataTable();
+            $('#datatable-mpscop').DataTable();
         } );
     </script>
     {% if done %}
