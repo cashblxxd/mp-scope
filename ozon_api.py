@@ -7,7 +7,7 @@ from PyPDF2 import PdfFileMerger
 import os
 
 
-def get_items_ids(shop_api_key, client_id, state='ALL'):
+def get_items_ids(shop_api_key, client_id, state):
     print("Getting ids...")
     cur = 1
     r = {"total": 1}
@@ -282,6 +282,7 @@ def get_posting_info(r, shop_api_key, client_id):
     result = {
         "creds": f"{shop_api_key}:{client_id}",
         "date": r.get("in_process_at", "-"),
+        "shipment_date": r.get("shipment_date", "-"),
         "order_number": r.get("order_number", "-"),
         "posting_number": r.get("posting_number", "-"),
         "details": get_details(products),

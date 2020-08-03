@@ -5,7 +5,7 @@ from mongo import user_exist, put_confirmation_token, get_confirmation_token, us
     insert_items_update_job, insert_act_job, insert_labels_upload_job, insert_deliver_job,\
     get_files_list, get_file, delete_file, email_taken, change_password, account_exist_name_apikey_client_id, add_account, \
     delete_account_from_session, delete_account_from_db, insert_postings_new_update_job, insert_postings_status_update_job,\
-    check_job_not_exist, put_reset_token, get_reset_token, reset_password
+    check_job_not_exist, put_reset_token, get_reset_token, reset_password, insert_postings_update_job
 from mailer import send_join_mail, send_reset_mail
 from pprint import pprint
 from validate_email import validate_email
@@ -40,6 +40,16 @@ def dashboard():
         return redirect("/login")
     action = request.args.get("action", "None")
     changed = False
+    ''' elif update == "postings_new":
+            pos = request.args.get("pos", "None")
+            if pos.isdigit() and int(pos) < len(mongosession["order"]):
+                account = mongosession["data"][mongosession["order"][int(pos)]]
+                if not check_job_not_exist(account["apikey"], account["client_id"], "postings_priority", mgclient, type="status"):
+                    mongosession["done"] = "postings_update_inprogress"
+                else:
+                    
+                    mongosession["done"] = "postings_new"
+                changed = True'''
     if action == "update":
         update = request.args.get("update", "None")
         if update == "items":
@@ -49,25 +59,13 @@ def dashboard():
                 insert_items_update_job(account["apikey"], account["client_id"], f'{account["apikey"]}:{account["client_id"]}', mgclient)
                 mongosession["done"] = "items"
                 changed = True
-        elif update == "postings_new":
-            pos = request.args.get("pos", "None")
-            if pos.isdigit() and int(pos) < len(mongosession["order"]):
-                account = mongosession["data"][mongosession["order"][int(pos)]]
-                if not check_job_not_exist(account["apikey"], account["client_id"], "postings_priority", mgclient, type="status"):
-                    mongosession["done"] = "postings_update_inprogress"
-                else:
-                    insert_postings_new_update_job(account["apikey"], account["client_id"], f'{account["apikey"]}:{account["client_id"]}', mgclient)
-                    mongosession["done"] = "postings_new"
-                changed = True
         elif update == "postings_update":
             pos = request.args.get("pos", "None")
             if pos.isdigit() and int(pos) < len(mongosession["order"]):
                 account = mongosession["data"][mongosession["order"][int(pos)]]
-                if not check_job_not_exist(account["apikey"], account["client_id"], "postings_priority", mgclient, type="new"):
-                    mongosession["done"] = "postings_new_inprogress"
-                else:
-                    insert_postings_status_update_job(account["apikey"], account["client_id"], f'{account["apikey"]}:{account["client_id"]}', mgclient)
-                    mongosession["done"] = "postings_update"
+                insert_postings_update_job(account["apikey"], account["client_id"], f'{account["apikey"]}:{account["client_id"]}', mgclient)
+                # insert_postings_new_update_job(account["apikey"], account["client_id"], f'{account["apikey"]}:{account["client_id"]}', mgclient)
+                mongosession["done"] = "postings_update"
                 changed = True
         elif update == "act":
             pos = request.args.get("pos", "None")
@@ -204,7 +202,7 @@ def dashboard():
         title = {
             "items": "Список товаров обновляется",
             "postings_new": "Новые заказы загружаются",
-            "postings_update": "Статусы заказов обновляются",
+            "postings_update": "Список заказов обновляется",
             "act": "Акт формируется, зайдите в Загрузки",
             "file_deleted": "Файл успешно удалён",
             "labels": "Маркировки формируются, зайдите в Загрузки",

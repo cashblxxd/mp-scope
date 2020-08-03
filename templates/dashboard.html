@@ -161,8 +161,7 @@
                                         {% if tab in ["items_all", "visible", "ready_to_supply", "state_failed", "empty_stock", "invisible"] %}
                                             <a class="btn" href="/dashboard?action=update&update=items&pos={{ cur_pos }}">Обновить</a>
                                         {% else %}
-                                            <a class="btn" href="/dashboard?action=update&update=postings_new&pos={{ cur_pos }}">Загрузить новые</a>
-                                            <a class="btn" href="/dashboard?action=update&update=postings_update&pos={{ cur_pos }}">Обновить статусы</a>
+                                            <a class="btn" href="/dashboard?action=update&update=postings_update&pos={{ cur_pos }}">Обновить</a>
                                             {% if tab == "awaiting_packaging" %}
                                                 <input class="btn" type="submit" name="action" value="Собрать">
                                             {% elif tab == "awaiting_deliver" %}
@@ -282,7 +281,8 @@
                                                                                     <input type="checkbox" name="select-all" onClick="toggle(this)" value="select-all"/>
                                                                                 </th>
                                                                             {% endif %}
-                                                                            <th data-field="date">Дата</th>
+                                                                            <th data-field="date">Дата создания</th>
+                                                                            <th data-field="date">Дата отгрузки</th>
                                                                             <th data-field="order_number">Номер заказа</th>
                                                                             <th data-field="posting_number">Номер отправления</th>
                                                                             <th data-field="details">Детали отправления</th>
@@ -303,6 +303,7 @@
                                                                                     </td>
                                                                                 {% endif %}
                                                                                 <td>{{ i["date"] }}</td>
+                                                                                <td>{{ i["shipment_date"] }}</td>
                                                                                 <td>{{ i["order_number"] }}</td>
                                                                                 <td>{{ i["posting_number"] }}</td>
                                                                                 <td>{{ i["details"] }}</td>

@@ -18,7 +18,7 @@ from collections import OrderedDict
 
 def load_new_postings(apikey, client_id, data, client):
     if data["last_updated"] is None:
-        neww = get_new_postings_list(apikey, client_id)
+        neww = get_new_postings_list(apikey, client_id, (datetime.datetime.now() + dateutil.relativedelta.relativedelta(months=-1)).replace(day=1))
     else:
         neww = get_new_postings_list(apikey, client_id, data["last_updated"] + dateutil.relativedelta.relativedelta(days=-1))
     data["last_updated"] = datetime.datetime.now()
@@ -93,6 +93,14 @@ def update_postings_status(apikey, client_id, timedelta, client):
         }, {"$set": i}, upsert=True)
 
 
+def update_postings(api_key, client_id, timedelta, client):
+    print('got it')
+    update_postings_status(api_key, client_id, timedelta, client)
+    print('loaded new')
+    load_new_postings_job(api_key, client_id, client)
+    print("updated, done")
+
+
 '''
 def update_postings(apikey, client_id, client, timedelta="1d"):
     data = client.ozon_data.postings_ids.find_one({
@@ -123,13 +131,7 @@ def update_postings(apikey, client_id, client, timedelta="1d"):
 
 
 def load_new_items(apikey, client_id, client):
-    for i in {
-        "VISIBLE": [],
-        "INVISIBLE": [],
-        "EMPTY_STOCK": [],
-        "READY_TO_SUPPLY": [],
-        "STATE_FAILED": []
-    }:
+    for i in ["VISIBLE", "INVISIBLE", "EMPTY_STOCK", "READY_TO_SUPPLY", "STATE_FAILED"]:
         for j in get_items_ids(apikey, client_id, i):
             k = get_item_info(j["product_id"], j["offer_id"], apikey, client_id)
             k["status"] = i
@@ -257,10 +259,7 @@ def work(channel="postings_priority"):
                 pprint(job_data)
                 try:
                     if channel.startswith("postings"):
-                        if job_data["type"] == "new":
-                            load_new_postings_job(job_data["api_key"], job_data["client_id"], client)
-                        elif job_data["type"] == "status":
-                            update_postings_status(job_data["api_key"], job_data["client_id"], "1m", client)
+                        update_postings(job_data["api_key"], job_data["client_id"], "1m", client)
                     elif channel.startswith("items"):
                         #print("gotta update items")
                         load_new_items(job_data["api_key"], job_data["client_id"], client)

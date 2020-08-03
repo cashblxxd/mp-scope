@@ -1,4 +1,4 @@
-# import pymongo
+import pymongo
 from pprint import pprint
 import secrets
 from mongo_queue.queue import Queue
@@ -110,7 +110,14 @@ def clear_queue(client):
     client.update_queue_db.job_ids.delete_many({})
     client.update_queue_db.sessions_active.delete_many({})
 
+'''
+def clear(client):
+    client = pymongo.MongoClient("mongodb+srv://dbUser:qwep-]123p=]@cluster0-ifgr4.mongodb.net/Cluster0?retryWrites=true&w=majority")
+    client.ozon_data.items_pool.delete_many({})
 
+
+clear(0)
+'''
 #clear_queue()
 
 
@@ -317,14 +324,17 @@ def delete_file_gridfs(f_id, client):
     })
 
 
-def check_job_not_exist(api_key, client_id, channel, client, type=None):
+def check_job_not_exist(api_key, client_id, channel, client): # , type=None):
     q = {
         "api_key": api_key,
         "client_id": client_id,
         "channel": channel
     }
+    """
     if type:
         q["type"] = type
+    """
+
     data = client.update_queue_db.update_queue.find_one(q)
     return data is None or data["attempts"] > 1
 
@@ -351,14 +361,14 @@ def insert_items_regular_update(api_key, client_id, job_id, client):
 
 
 def insert_postings_new_update_job(api_key, client_id, job_id, client):
-    if check_job_not_exist(api_key, client_id, "postings_priority", client, type="new"):
+    if check_job_not_exist(api_key, client_id, "postings_priority", client):
         queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
         queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id, "type": "new"}, channel="postings_priority")
         mark_pending(job_id, client)
 
 
 def insert_postings_status_update_job(api_key, client_id, job_id, client):
-    if check_job_not_exist(api_key, client_id, "postings_priority", client, type="status"):
+    if check_job_not_exist(api_key, client_id, "postings_priority", client):
         queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
         queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id, "type": "status"}, channel="postings_priority")
         mark_pending(job_id, client)
@@ -367,7 +377,7 @@ def insert_postings_status_update_job(api_key, client_id, job_id, client):
 def insert_postings_update_job(api_key, client_id, job_id, client):
     if check_job_not_exist(api_key, client_id, "postings_priority", client):
         queue = Queue(client.update_queue_db.update_queue, consumer_id=''.join(random.choice(string.ascii_lowercase) for i in range(10)), timeout=300, max_attempts=3)
-        queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id}, channel="postings_priority")
+        queue.put({"api_key": api_key, "client_id": client_id, "job_id": job_id, "type": "all"}, channel="postings_priority")
         print("put")
         pprint({"api_key": api_key, "client_id": client_id, "job_id": job_id})
         mark_pending(job_id, client)
