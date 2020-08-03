@@ -4,8 +4,8 @@ from mongo import user_exist, put_confirmation_token, get_confirmation_token, us
     get_session, init_session, modify_session, delete_session, get_items, get_postings, \
     insert_items_update_job, insert_act_job, insert_labels_upload_job, insert_deliver_job,\
     get_files_list, get_file, delete_file, email_taken, change_password, account_exist_name_apikey_client_id, add_account, \
-    delete_account_from_session, delete_account_from_db, insert_postings_new_update_job, insert_postings_status_update_job,\
-    check_job_not_exist, put_reset_token, get_reset_token, reset_password, insert_postings_update_job
+    delete_account_from_db, insert_postings_new_update_job, insert_postings_status_update_job,\
+    check_job_not_exist, put_reset_token, get_reset_token, reset_password, insert_postings_update_job, get_accounts_order_data
 from mailer import send_join_mail, send_reset_mail
 from pprint import pprint
 from validate_email import validate_email
@@ -40,10 +40,11 @@ def dashboard():
         return redirect("/login")
     action = request.args.get("action", "None")
     changed = False
+    accounts, accounts_data = get_accounts_order_data(mongosession["accounts_token"], mgclient)
     ''' elif update == "postings_new":
             pos = request.args.get("pos", "None")
-            if pos.isdigit() and int(pos) < len(mongosession["order"]):
-                account = mongosession["data"][mongosession["order"][int(pos)]]
+            if pos.isdigit() and int(pos) < len(accounts):
+                account = accounts_data[mongosession["order"][int(pos)]]
                 if not check_job_not_exist(account["apikey"], account["client_id"], "postings_priority", mgclient, type="status"):
                     mongosession["done"] = "postings_update_inprogress"
                 else:
@@ -54,31 +55,31 @@ def dashboard():
         update = request.args.get("update", "None")
         if update == "items":
             pos = request.args.get("pos", "None")
-            if pos.isdigit() and int(pos) < len(mongosession["order"]):
-                account = mongosession["data"][mongosession["order"][int(pos)]]
+            if pos.isdigit() and int(pos) < len(accounts):
+                account = accounts_data[accounts[int(pos)]]
                 insert_items_update_job(account["apikey"], account["client_id"], f'{account["apikey"]}:{account["client_id"]}', mgclient)
                 mongosession["done"] = "items"
                 changed = True
         elif update == "postings_update":
             pos = request.args.get("pos", "None")
-            if pos.isdigit() and int(pos) < len(mongosession["order"]):
-                account = mongosession["data"][mongosession["order"][int(pos)]]
+            if pos.isdigit() and int(pos) < len(accounts):
+                account = accounts_data[accounts[int(pos)]]
                 insert_postings_update_job(account["apikey"], account["client_id"], f'{account["apikey"]}:{account["client_id"]}', mgclient)
                 # insert_postings_new_update_job(account["apikey"], account["client_id"], f'{account["apikey"]}:{account["client_id"]}', mgclient)
                 mongosession["done"] = "postings_update"
                 changed = True
         elif update == "act":
             pos = request.args.get("pos", "None")
-            if pos.isdigit() and int(pos) < len(mongosession["order"]):
-                account = mongosession["data"][mongosession["order"][int(pos)]]
+            if pos.isdigit() and int(pos) < len(accounts):
+                account = accounts_data[accounts[int(pos)]]
                 insert_act_job(account["apikey"], account["client_id"], f'{account["apikey"]}:{account["client_id"]}', mgclient)
                 mongosession["done"] = "act"
                 changed = True
         elif update == "get_label":
             posting_number = request.args.get("posting_number", "None")
             pos = request.args.get("pos", "None")
-            if posting_number != "None" and pos.isdigit() and int(pos) < len(mongosession["order"]):
-                account = mongosession["data"][mongosession["order"][int(pos)]]
+            if posting_number != "None" and pos.isdigit() and int(pos) < len(accounts):
+                account = accounts_data[accounts[int(pos)]]
                 insert_labels_upload_job(account["apikey"], account["client_id"], [posting_number], f'labels_queue:{account["apikey"]}:{account["client_id"]}', mgclient)
                 mongosession["done"] = "labels"
                 changed = True
@@ -86,7 +87,7 @@ def dashboard():
         delete = request.args.get("delete", "None")
         if delete == "file":
             file_id = request.args.get("file_id", "None")
-            account = mongosession["data"][mongosession["order"][mongosession["cur_pos"]]]
+            account = accounts_data[accounts[mongosession["cur_pos"]]]
             delete_file(account["apikey"], account["client_id"], file_id, mgclient)
             mongosession["done"] = "file_deleted"
             changed = True
@@ -101,23 +102,22 @@ def dashboard():
         print(1)
         posting_numbers = request.form.getlist('posting_number')
         print(posting_numbers)
-        if posting_numbers and len(mongosession["order"]) > 0:
+        if posting_numbers and len(accounts) > 0:
             if request.form['action'] == 'Печать маркировок':
-                account = mongosession["data"][mongosession["order"][mongosession["cur_pos"]]]
+                account = accounts_data[accounts[mongosession["cur_pos"]]]
                 insert_labels_upload_job(account["apikey"], account["client_id"], posting_numbers, f'labels_queue:{account["apikey"]}:{account["client_id"]}', mgclient)
                 done = "labels"
             if request.form['action'] == 'Собрать':
-                account = mongosession["data"][mongosession["order"][mongosession["cur_pos"]]]
+                account = accounts_data[accounts[mongosession["cur_pos"]]]
                 insert_deliver_job(account["apikey"], account["client_id"], posting_numbers, f'deliver_queue:{account["apikey"]}:{account["client_id"]}', mgclient)
                 done = "deliver"
-    accounts = mongosession["order"]
     email_show = mongosession["email_show"]
     email = mongosession["email"]
     if panel != "None" and panel in {"dashboard", "downloads", "dynamics", "sales", "analytics", "purchases", "losses",
                                      "roadmap", "flow", "competitiors", "money", "settings"}:
         mongosession["panel"] = panel
         changed = True
-    if cur_pos != "None" and str(cur_pos).isdigit() and int(cur_pos) <= len(mongosession["order"]):
+    if cur_pos != "None" and str(cur_pos).isdigit() and int(cur_pos) <= len(accounts):
         mongosession["cur_pos"] = int(cur_pos)
         changed = True
     if tab != "None" and tab in {"items_all", "visible", "ready_to_supply", "state_failed", "empty_stock", "invisible",
@@ -161,10 +161,10 @@ def dashboard():
     tab = mongosession["tab"]
     data = "None"
     d = {}
-    if len(mongosession["order"]) > 0:
+    if len(accounts) > 0:
         if mongosession["panel"] == "dashboard":
             if mongosession["tab"] in {"items_all", "visible", "ready_to_supply", "state_failed", "empty_stock", "invisible"}:
-                account = mongosession["data"][accounts[cur_pos]]
+                account = accounts_data[accounts[cur_pos]]
                 data = get_items(account["apikey"], account["client_id"], mgclient, mongosession["tab"])
                 if data.count() == 0:
                     data = "None"
@@ -177,7 +177,7 @@ def dashboard():
                 }
             elif mongosession["tab"] in {"postings_all", "awaiting_packaging", "awaiting_deliver", "arbitration",
                                          "delivering", "delivered", "cancelled"}:
-                account = mongosession["data"][accounts[cur_pos]]
+                account = accounts_data[accounts[cur_pos]]
                 data = get_postings(account["apikey"], account["client_id"], mgclient, mongosession["tab"])
                 if data.count() == 0:
                     data = "None"
@@ -190,7 +190,7 @@ def dashboard():
                     "cancelled": "Отменён"
                 }
         elif mongosession["panel"] == "downloads":
-            account = mongosession["data"][accounts[cur_pos]]
+            account = accounts_data[accounts[cur_pos]]
             data = get_files_list(account["apikey"], account["client_id"], mgclient)
     pprint(data)
     if mongosession["done"] in {"items", "postings_new", "postings_update", "act", "file_deleted", "labels", "deliver",
@@ -270,7 +270,7 @@ def settings():
             if name and apikey and client_id:
                 response, data = account_exist_name_apikey_client_id(name, apikey, client_id, mongosession["accounts_token"], mgclient)
                 if response:
-                    add_account(session["uid"], name, apikey, client_id, mongosession["accounts_token"], mgclient)
+                    add_account(name, apikey, client_id, mongosession["accounts_token"], mgclient)
                     return redirect("/settings?action=done&done=account_added")
                 elif data == "name":
                     return redirect("/settings?action=done&done=name_taken")
@@ -291,7 +291,6 @@ def settings():
         if pos.isdigit():
             pos = int(pos)
             if pos < len(mongosession["order"]):
-                delete_account_from_session(session["uid"], pos, mgclient)
                 delete_account_from_db(mongosession["accounts_token"], pos, mgclient)
                 return redirect("/settings")
     if mongosession["done"] in {"bad_old_password", "bad_new_password", "passwords_nomatch", "password_success", "name_taken",
@@ -324,6 +323,7 @@ def settings():
     return render_template("settings.html", email_show=mongosession["email_show"], email=mongosession["email"], accounts=mongosession["order"], account_data=mongosession["data"])
 
 
+'''
 @app.route('/get_file', methods=['GET', 'POST'])
 def posting_labels():
     if "uid" not in session:
@@ -338,7 +338,8 @@ def posting_labels():
         return redirect("/dashboard?panel=downloads")
     if not u.isdigit() or int(u) > len(mongosession["order"]):
         u = mongosession["cur_pos"]
-    account = mongosession["data"][mongosession["order"][int(u)]]
+    accounts, accounts_data = get_accounts_order_data(mongosession["accounts_token"], mgclient)
+    account = accounts[mongosession["order"][int(u)]]
     flist = get_files_list(account["apikey"], account["client_id"], mgclient)
     if q not in flist:
         return redirect("/dashboard?panel=downloads")
@@ -360,7 +361,8 @@ def mark_delete():
     if not u.isdigit() or int(u) > len(mongosession["order"]):
         u = mongosession["cur_pos"]
     print(q, u)
-    account = mongosession["data"][mongosession["order"][int(u)]]
+    accounts, accounts_data = get_accounts_order_data(mongosession["accounts_token"], mgclient)
+    account = accounts[mongosession["order"][int(u)]]
     try:
         delete_file(account["apikey"], account["client_id"], q, mgclient)
     except Exception as e:
@@ -380,9 +382,11 @@ def get_act():
     u = request.args.get("u", "None")
     if not u.isdigit() or int(u) > len(mongosession["order"]):
         u = mongosession["cur_pos"]
-    account = mongosession["data"][mongosession["order"][int(u)]]
+    accounts, accounts_data = get_accounts_order_data(mongosession["accounts_token"], mgclient)
+    account = accounts[mongosession["order"][int(u)]]
     insert_act_job(account["apikey"], account["client_id"], f'get_act:{account["apikey"]}:{account["client_id"]}', mgclient)
     return redirect("/dashboard?done=act")
+'''
 
 
 @app.route('/confirm', methods=['GET', 'POST'])
@@ -396,7 +400,7 @@ def confirm_join():
             email, password = message
             response, data = user_create(email, password, mgclient)
             if response:
-                email, accounts_token = data["email"], data["accounts_token"]
+                return render_template("login.html", email_confirmed=True)
     return redirect("/login")
 
 

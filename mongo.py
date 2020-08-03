@@ -110,6 +110,16 @@ def clear_queue(client):
     client.update_queue_db.job_ids.delete_many({})
     client.update_queue_db.sessions_active.delete_many({})
 
+
+def get_accounts_order_data(accounts_token, client):
+    data = client.userdata.accounts.find_one({
+        "token": accounts_token
+    })
+    if data is None:
+        return []
+    return data["order"], data["data"]
+
+
 '''
 def clear(client):
     client = pymongo.MongoClient("mongodb+srv://dbUser:qwep-]123p=]@cluster0-ifgr4.mongodb.net/Cluster0?retryWrites=true&w=majority")
@@ -137,7 +147,7 @@ def account_exist_name_apikey_client_id(name, apikey, client_id, token, client):
     return True, ""
 
 
-def add_account(uid, name, apikey, client_id, token, client):
+def add_account(name, apikey, client_id, token, client):
     data = client.userdata.accounts.find_one({
         "token": token
     })
@@ -148,38 +158,9 @@ def add_account(uid, name, apikey, client_id, token, client):
         "apikey": apikey,
         "client_id": client_id
     }
-    mongosession = client.sessions_data.sessions_active.find_one({
-        "uid": uid
-    })
-    if mongosession is None:
-        pass
-    else:
-        mongosession["order"].append(name)
-        mongosession["data"][name] = {
-            "apikey": apikey,
-            "client_id": client_id
-        }
-        client.sessions_data.sessions_active.update_one({
-            "uid": uid
-        }, {"$set": mongosession})
     client.userdata.accounts.update_one({
         "token": token
     }, {"$set": data})
-
-
-def delete_account_from_session(uid, pos, client):
-    mongosession = client.sessions_data.sessions_active.find_one({
-        "uid": uid
-    })
-    if mongosession is None:
-        return False, "Not found"
-    acc_name = mongosession["order"][pos]
-    mongosession["order"].pop(pos)
-    mongosession["data"].pop(acc_name)
-    mongosession["done"] = "account_deleted"
-    client.sessions_data.sessions_active.update_one({
-        "uid": uid
-    }, {"$set": mongosession})
 
 
 def delete_account_from_db(token, pos, client):
@@ -220,8 +201,6 @@ def init_session(uid, email, accounts_token, client):
         "cur_pos": 0,
         "panel": "dashboard",
         "tab": "postings_all",
-        "order": accounts["order"],
-        "data": accounts["data"],
         "done": ""
     })
 

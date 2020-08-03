@@ -76,6 +76,23 @@
             });
         </script>
     {% endif %}
+    {% if email_confirmed %}
+        <script src="{{ url_for('static', filename='js/notifications.js') }}" type="text/javascript"></script>
+        <script>
+            window.addEventListener('DOMContentLoaded', function () {
+                window.createNotification({
+                    closeOnClick: true,
+                    displayCloseButton: false,
+                    positionClass: "nfc-bottom-right",
+                    showDuration: 3000,
+                    theme: "success" // "success", "info", "warning", "error", "none"
+                })({
+                    title: "Email успешно подтверждён",
+                    message: "Пожалуйста, авторизируйтесь"
+                });
+            });
+        </script>
+    {% endif %}
     {% if password_changed %}
         <script src="{{ url_for('static', filename='js/notifications.js') }}" type="text/javascript"></script>
         <script>
