@@ -3,9 +3,9 @@
 
 <head>
     <meta charset="utf-8">
-    <title>MP-SCOPE</title>
+    <title>Dashboard | MP-Scope</title>
     <meta content="" name="description">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon/favicon.png') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon.jpg') }}">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/libs.min.css') }}"/>
@@ -15,7 +15,6 @@
 </head>
 
 <body>
-    
     <script src="{{ url_for('static', filename='js/libs.min.js') }}"></script>
     <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
@@ -42,17 +41,18 @@
                 transform: scale(2);
             }
         {% endif %}
+        .logo {
+            width: 100px;
+            height: auto;
+        }
     </style>
     <header>
         <div class="container">
             <div class="top_line clearfix">
                 <div class="search_form">
-                    <form method="post" action="search">
-                        <div class="wrap_input">
-                            <i class="far fa-search"></i>
-                            <input type="search" name="search" placeholder="Поиск по названию">
-                        </div>
-                    </form>
+                    <div class="wrap_input">
+                        <a href="/dashboard"><img class="logo" src="{{ url_for('static', filename='img/logo.jpg') }}" alt="MP-Scope"></a>
+                    </div>
                 </div>
                 <nav class="navbar">
                     <ul class="icon_panel">
